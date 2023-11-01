@@ -1,6 +1,8 @@
 import cv2
 
-cam = cv2.VideoCapture(0)
+cam = cv2.VideoCapture(1)
+focus_value = 50
+cam.set(cv2.CAP_PROP_FOCUS, focus_value)
 
 while True:
     ret, image = cam.read()
