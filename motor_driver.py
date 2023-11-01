@@ -1,53 +1,66 @@
 import RPi.GPIO as gpio
 
+# pins use GPIO Number convention (BCM)
+LEFT_MOTOR_PWM_PIN = 16 # goes to enable
+LEFT_MOTOR_IN1_PIN = 20
+LEFT_MOTOR_IN2_PIN = 21
+
 class Motor:
-    def __init__(self, pwm_pin, en_pin):
+    def __init__(self, pwm_pin, in_1_pin, in_2_pin):
+
         self.pwm_pin = pwm_pin
-        self.en_pin = en_pin
+        self.in_1 = in_1_pin
+        self.in_2 = in_2_pin
+
         self.speed = 0
+        
+        # configure pins
         gpio.setmode(gpio.BCM)
         gpio.setup(self.pwm_pin, gpio.OUT)
-        gpio.setup(self.en_pin, gpio.OUT)
-        self.pwm = gpio.PWM(self.pwm_pin, 1000)
+        gpio.setup(self.in_1, gpio.OUT)
+        gpio.setup(self.in_2, gpio.OUT)
+
+        # initalize to forward
+        gpio.output(self.in_1,gpio.HIGH)
+        gpio.output(self.in_2,gpio.LOW)
+
+        # start PWM, without input
+        # self.pwm = gpio.PWM(self.pwm_pin, 50)
+        self.pwm = gpio.PWM(self.pwm_pin, 125)
         self.pwm.start(0)
 
-    def set_speed(self, speed):
-        # Set the motor speed using PWM with a duty cycle from 0 to 100
-        self.speed = speed
-        self.pwm.ChangeDutyCycle(speed)
+    def set_speed(self, duty_cycle):
+        # limit duty cycle
+        if duty_cycle < 0:
+            duty_cycle = 0
+        elif duty_cycle > 100:
+            duty_cycle = 100
 
-    def move_forward(self):
-        # Move the motor forward
-        gpio.output(self.en_pin, gpio.HIGH)
+        # Set the duty cycle of the PWM signal
+        self.pwm.ChangeDutyCycle(duty_cycle)
 
-    def move_backward(self):
-        # Move the motor backward
-        gpio.output(self.en_pin, gpio.LOW)
+    def spin_clockwise(self):
+        # zz tune ensure stopped/direction command
+        # self.stop()
+
+        gpio.output(self.in_1,gpio.HIGH)
+        gpio.output(self.in_2,gpio.LOW)
+    
+    def spin_counter_clockwise(self):
+        # zz tune ensure stopped/direction command
+        # self.stop()
+
+        gpio.output(self.in_1,gpio.LOW)
+        gpio.output(self.in_2,gpio.HIGH)
 
     def stop(self):
         # Stop the motor
-        self.pwm.ChangeDutyCycle(0)
+        self.set_speed(0)
 
-LEFT_MOTOR_PWM_PIN = 17
-LEFT_MOTOR_EN_PIN = 22
-left_motor = Motor(LEFT_MOTOR_PWM_PIN, LEFT_MOTOR_EN_PIN)
+    # close all inputs
+    # might need a 10k ohm resistor for pwm
+    def close(self):
+        self.pwm.stop()
+        gpio.cleanup()
 
-# def main():
-#     left_motor = Motor(17, 22)
-
-#     try:
-#         # Move forward at 50% speed for 2 seconds
-#         left_motor.move_forward()
-#         left_motor.set_speed(50)
-#         time.sleep(2)
-
-#         # Stop the motor
-#         left_motor.stop()
-
-#     except KeyboardInterrupt:
-#         pass
-
-#     gpio.cleanup()
-
-# if __name__ == "__main__":
-#     main()
+left_motor = Motor(LEFT_MOTOR_PWM_PIN, LEFT_MOTOR_IN1_PIN,LEFT_MOTOR_IN2_PIN)

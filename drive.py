@@ -1,16 +1,37 @@
-import RPi.GPIO as gpio
 from motor_driver import left_motor
-from encoder import left_encoder
+import time
 
-left_motor.move_forward
 left_motor.set_speed(100)
+timeValue = 2
 
 try:
     while True:
-        left_value = left_encoder.value
+        print("running")
 
-        print(f"Left Encoder Value: {left_value}")
+        print("20")
+        left_motor.set_speed(20)
+        time.sleep(timeValue)
+        
+        print("40")
+        left_motor.set_speed(40)
+        time.sleep(timeValue)
+
+        print("60")
+        left_motor.set_speed(60)
+        time.sleep(timeValue)
+
+        print("80")
+        left_motor.set_speed(80)
+        time.sleep(timeValue)
+
+        print("100")
+        left_motor.set_speed(100)
+        time.sleep(timeValue)
+
+
 
 except KeyboardInterrupt:
-    gpio.cleanup()
+    left_motor.close()
+
+print("END")
 
