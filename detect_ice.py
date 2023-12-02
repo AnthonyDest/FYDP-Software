@@ -1,21 +1,22 @@
 import cv2
 import numpy as np
 import ice_hsv_autotune_select_window
+import os
 
 # Load the image
-image_name = "ice_image1.jpg"
+image_name = "ice_image5.jpg"
 image = cv2.imread(image_name)
 
 # Resize the image
-width = 500
-height = 300
+width = int(700/2)
+height =  int(720/2)
 image = cv2.resize(image, (width, height))
 
 # Define whether to manually select ROI
-use_roi = False 
+select_roi = True 
 
 # Select ROI
-if use_roi:
+if select_roi:
     low_ice, high_ice = ice_hsv_autotune_select_window.select_roi(image_name)
     low_snow = np.array([0.00, 0.00, 194.54])
     high_snow = np.array([0.00, 0.00, 241.45])
@@ -24,9 +25,9 @@ if use_roi:
 else:
     # Manually specify the HSV low and high values
 
-    # image 1 - good value
-    low_ice = np.array([0.00, 0.00, 172.00])
-    high_ice = np.array([75.00, 3.00, 197.00])
+    # # image 1 - good value
+    # low_ice = np.array([0.00, 0.00, 172.00])
+    # high_ice = np.array([75.00, 3.00, 197.00])
 
 
     # image 2 - good value
@@ -37,6 +38,18 @@ else:
     # low_ice = np.array([101.00, 27.00, 172.00])
     # high_ice = np.array([110.00, 33.00, 187.00])
 
+    # # image 4 - good value
+    # low_ice = np.array([15.00, 0.00, 0.00])
+    # high_ice = np.array([50.00, 21.00, 183.00])
+    # ice image 5 - good value
+    # low_ice = np.array([99.00, 30.00, 130.00])
+    # high_ice = np.array([115.00, 52.00, 179.00])
+    low_ice = np.array([100.00, 35.00, 130.00])
+    high_ice = np.array([115.00, 48.00, 155.00])
+
+
+
+
     # values of snow to be ignored below
     # low_snow = np.array([3.02, 0.04, 221.25])
     # up_snow = np.array([55.09, 1.64, 231.37])
@@ -44,12 +57,16 @@ else:
     high_snow = np.array([0.00, 0.00, 241.45])
 
 # Apply Gaussian blur to the mask
-blur = cv2.GaussianBlur(image, (5, 5), 0)
+# blur = cv2.GaussianBlur(image, (11, 11), 0)
+# cv2.imshow("Blur- GAUS", blur)
+blur = cv2.medianBlur(image,5)
 cv2.imshow("Blur-1", blur)
 
 # Convert the entire image to HSV color space
 hsv = cv2.cvtColor(blur, cv2.COLOR_BGR2HSV)
 cv2.imshow("HSV-2", hsv)
+
+# zz remove range, give < and >
 
 # Create a mask for the snow color range
 mask = cv2.inRange(hsv, low_ice, high_ice)
@@ -59,8 +76,11 @@ cv2.imshow("In HSV Range mask-3", mask)
 # cv2.imshow("Current Mask A", mask)
 
 # group each section into X by Y groups of pixels
-kernel = np.ones((20, 20), np.uint8)
-group_mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
+# kernel = np.ones((10, 10), np.uint8)
+# group_mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
+median = cv2.medianBlur(mask,15)
+
+group_mask = median
 cv2.imshow("Group pixel mask-4", group_mask)
 
 
@@ -90,6 +110,7 @@ cv2.imshow("Group pixel mask-4", group_mask)
 
 # Apply the mask to the entire image
 res = cv2.bitwise_and(image, image, mask=group_mask)
+resOR = cv2.bitwise_or(image, image, mask=group_mask)
 
 # remove_snow = cv2.bitwise_not(mask_snow)
 # cv2.imshow("Removed Snow", remove_snow)
@@ -97,6 +118,21 @@ res = cv2.bitwise_and(image, image, mask=group_mask)
  
 # double_mask = cv2.bitwise_and(mask_snow, mask_snow, mask=mask)
 # cv2.imshow("Double Mask", double_mask)
+
+print_images = True
+if print_images:
+    # Create a folder named with the 'image_name' variable
+    output_folder = os.path.join("images", image_name)
+    os.makedirs(output_folder, exist_ok=True)
+
+    # Save images in the folder based on 'image_name' with sequential numbering
+    image_list = [image, blur, hsv, mask, group_mask, res]
+    image_types = ["Original_Image", "Blur", "HSV", "In_HSV_Range", "Kernel_Mask", "Final_Image"]
+
+    for i, (img, img_type) in enumerate(zip(image_list, image_types), start=1):
+        filename = f"{img_type}_{i}.jpg"
+        filepath = os.path.join(output_folder, filename)
+        cv2.imwrite(filepath, img)
 
 # Create windows for displaying images
 cv2.namedWindow("Original Image")
@@ -107,6 +143,8 @@ cv2.imshow("Original Image", image)
 
 # Display the masked image
 cv2.imshow("Masked Image", res)
+
+# cv2.imshow("OR Image", resOR)
 
 cv2.waitKey(0)
 cv2.destroyAllWindows()

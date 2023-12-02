@@ -24,8 +24,9 @@ def select_roi(image_path):
     blur = cv2.GaussianBlur(image, (5, 5), 0)
 
     # Resize the image
-    width = 500
-    height = 300
+    width = int(700/2)
+    height =  int(720/2)
+    # image = cv2.resize(image, (width, height))
     blur = cv2.resize(blur, (width, height))
 
     # Select image
@@ -39,6 +40,7 @@ def select_roi(image_path):
                     bottom_right = (rois[i + 1])
                     cv2.rectangle(roi_image, top_left, bottom_right, (0, 255, 0), 2)
             cv2.imshow("Select ROIs", roi_image)
+            
         else:
             cv2.imshow("Select ROIs", blur)
 
@@ -53,12 +55,17 @@ def select_roi(image_path):
 
     # List to store HSV statistics for all selected windows
     roi_hsv_stats = []
-
+    cv2.imwrite("Selected_ROI.jpg", roi_image)
     top_left = (rois[0])
     bottom_right = (rois[0 + 1])
+
     roi = blur[top_left[1]:bottom_right[1], top_left[0]:bottom_right[0]]
+    cv2.imwrite("roi.jpg", roi)
 
     hsv_roi = cv2.cvtColor(roi, cv2.COLOR_BGR2HSV)
+
+    # kernel = np.ones((20, 20), np.uint8)
+    # hsv_roi = cv2.morphologyEx(roi, cv2.MORPH_CLOSE, kernel)
 
     low_hue = np.percentile(hsv_roi[:, :, 0], 2)
     low_saturation = np.percentile(hsv_roi[:, :, 1], 20)
