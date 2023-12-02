@@ -1,6 +1,7 @@
 # FYDP-Software
 
 ## Setup
+Install Python https://code.visualstudio.com/docs/python/python-tutorial
 
 ### SSH into Raspberry Pi
 
@@ -11,4 +12,5 @@
     1. user@hostname: ```fydp@raspberrypi.local```  
     1. Platform: Linux
 
-### ROS 2 and Gazebo
+## Vision
+detect_ice.py - can select window of ice to autotune, or use preset values, to mask image for ice
