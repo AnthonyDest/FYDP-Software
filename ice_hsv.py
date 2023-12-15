@@ -18,7 +18,7 @@ cv2.namedWindow("Select ROIs")
 cv2.setMouseCallback("Select ROIs", on_mouse)
 
 # Load the image
-image = cv2.imread("ice_image.jpg")
+image = cv2.imread("ice_image1.jpg")
 
 # Resize the image
 width = 500
@@ -56,8 +56,14 @@ for i in range(0, len(rois), 2):
         top_left = (rois[i])
         bottom_right = (rois[i + 1])
         roi = image[top_left[1]:bottom_right[1], top_left[0]:bottom_right[0]]
-        hsv_roi = cv2.cvtColor(roi, cv2.COLOR_BGR2HSV)
+        
+        cv2.imshow("ROI", roi)
 
+        cv2.waitKey(0)
+
+        hsv_roi = cv2.cvtColor(roi, cv2.COLOR_BGR2HSV)
+        print(hsv_roi)
+                
         avg_hue = np.mean(hsv_roi[:, :, 0])
         avg_saturation = np.mean(hsv_roi[:, :, 1])
         avg_value = np.mean(hsv_roi[:, :, 2])

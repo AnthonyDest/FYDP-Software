@@ -52,7 +52,7 @@ while True:
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 # Initialize the AprilTag detector with a specific family
-detector = apriltag.Detector()  # You can choose a different family if needed
+detector = apriltag.CommonDetector() # You can choose a different family if needed
 
 # Known values
 actual_tag_size = 14.0  # in cm^2
