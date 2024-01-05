@@ -1,12 +1,13 @@
 import helper
 import path_planning
 
+
 class robot_control:
     def __init__(self):
         # Initialize any variables or resources here
-        self.robot_node = helper.Node(0, 0, 0, 0)
+        self.robot_node = helper.Node(0, 0, 0, 0, 0)
 
-    def initalize_modules(self, image_processing, path_planning):
+    def initialize_modules(self, image_processing, path_planning):
         self.image_processing = image_processing
         self.path_planning = path_planning
 
@@ -26,5 +27,14 @@ class robot_control:
     # TODO steer robot to desired heading
     def steer_robot(self):
         pass
-    
-    # TODO all low level drive commands, when function recieves relative coords
+
+    # TODO determine how to get water level. Sensor, or integral of time and flow rate?
+    def get_water_level(self):
+        self.current_water_level = 0
+        return self.current_water_level
+
+    # TODO all low level drive commands, when function recieves relative coords between two nodes
+
+    # TODO get velocity from merge sensor data, primarily use encoders and pose?
+    def get_veloctiy(self):
+        pass
