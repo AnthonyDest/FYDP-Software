@@ -88,11 +88,12 @@ class path_planning:
         plt.xlabel("X-coordinate")
         plt.ylabel("Y-coordinate")
         plt.legend()
+        plt.grid(True)
 
         if show_rink:
             self.plot_rink_border()
         else:
-            plt.grid(True)
+            plt.show()
 
     def plot_rink_border(self):
         # Plot the path
