@@ -30,7 +30,6 @@ class Robot:
         # TODO enter all states and how to handle here
         while True:
             return None
-        pass
 
 
 # accommodate robot turning on, how to enter script, necessary hardware... (https://raspberrypi-guide.github.io/programming/run-script-on-boot)
