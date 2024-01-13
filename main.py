@@ -32,12 +32,12 @@ class Robot:
         pass
 
 
-# Accomodate robot turning on, how to enter script, necessary hardware... (https://raspberrypi-guide.github.io/programming/run-script-on-boot)
+# accommodate robot turning on, how to enter script, necessary hardware... (https://raspberrypi-guide.github.io/programming/run-script-on-boot)
 def turn_on_robot():
     # handle turn on state
     pass
 
 
-# initalize all
+# initialize all
 if __name__ == "__main__":
     robot = Robot().state_machine()

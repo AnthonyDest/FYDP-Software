@@ -1,6 +1,11 @@
 # FYDP-Software
 
-## SnoMo
+# Welcome to Snowmo
+zz snowmo description
+zz link to website
+
+
+## SnoMo Software
 
 Code is split into 4 modules:  
 image_processing.py   - used for machine vision and localization  
@@ -11,6 +16,7 @@ main.py               - used to merge all modules together
 ## Setup
 Install Python: https://code.visualstudio.com/docs/python/python-tutorial
 
+zz update with conda instructions
 Install requirements: pip install -r requirements.txt
 
 ### SSH into Raspberry Pi
