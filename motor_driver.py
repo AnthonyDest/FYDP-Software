@@ -1,28 +1,28 @@
 import RPi.GPIO as gpio
 
 # pins use GPIO Number convention (BCM)
-LEFT_MOTOR_PWM_PIN = 16 # goes to enable
+LEFT_MOTOR_PWM_PIN = 16  # goes to enable
 LEFT_MOTOR_IN1_PIN = 20
 LEFT_MOTOR_IN2_PIN = 21
 
+
 class Motor:
     def __init__(self, pwm_pin, in_1_pin, in_2_pin):
-
         self.pwm_pin = pwm_pin
         self.in_1 = in_1_pin
         self.in_2 = in_2_pin
 
         self.speed = 0
-        
+
         # configure pins
         gpio.setmode(gpio.BCM)
         gpio.setup(self.pwm_pin, gpio.OUT)
         gpio.setup(self.in_1, gpio.OUT)
         gpio.setup(self.in_2, gpio.OUT)
 
-        # initalize to forward
-        gpio.output(self.in_1,gpio.HIGH)
-        gpio.output(self.in_2,gpio.LOW)
+        # initialize to forward
+        gpio.output(self.in_1, gpio.HIGH)
+        gpio.output(self.in_2, gpio.LOW)
 
         # start PWM, without input
         # self.pwm = gpio.PWM(self.pwm_pin, 50)
@@ -43,15 +43,15 @@ class Motor:
         # zz tune ensure stopped/direction command
         # self.stop()
 
-        gpio.output(self.in_1,gpio.HIGH)
-        gpio.output(self.in_2,gpio.LOW)
-    
+        gpio.output(self.in_1, gpio.HIGH)
+        gpio.output(self.in_2, gpio.LOW)
+
     def spin_counter_clockwise(self):
         # zz tune ensure stopped/direction command
         # self.stop()
 
-        gpio.output(self.in_1,gpio.LOW)
-        gpio.output(self.in_2,gpio.HIGH)
+        gpio.output(self.in_1, gpio.LOW)
+        gpio.output(self.in_2, gpio.HIGH)
 
     def stop(self):
         # Stop the motor
@@ -63,4 +63,5 @@ class Motor:
         self.pwm.stop()
         gpio.cleanup()
 
-left_motor = Motor(LEFT_MOTOR_PWM_PIN, LEFT_MOTOR_IN1_PIN,LEFT_MOTOR_IN2_PIN)
+
+left_motor = Motor(LEFT_MOTOR_PWM_PIN, LEFT_MOTOR_IN1_PIN, LEFT_MOTOR_IN2_PIN)
