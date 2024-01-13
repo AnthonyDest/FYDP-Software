@@ -1,6 +1,7 @@
 import numpy as np
 import helper
 import matplotlib.pyplot as plt
+import copy
 
 
 class path_planning:
@@ -13,6 +14,7 @@ class path_planning:
         self.path_overlap_m = 0.2
         self.normal_velocity_straight_mps = 1
         self.normal_velocity_turning_mps = 1
+        self.path = []
 
     # zz perhaps input rink dimensions here
     # zz how to deal with refilling water: does generate path determine at init or insert a go to the end of rink and back when detecting water full
@@ -35,10 +37,9 @@ class path_planning:
 
     # TODO generate a path of nodes to follow
     def generate_path(self):
-        self.path = []
-
         # zz first generate x-y positions of all nodes
-        self.path = self.generate_path_x_y()
+        # self.path = self.generate_path_x_y()\
+        self.generate_path_x_y()
         # zz second
 
         # TODO create a map of the rink, with the path overlaid
@@ -46,7 +47,7 @@ class path_planning:
 
         return self.path
 
-    # TODO plot outline of rink path
+    # TODO improve path planning algorithm (better pattern, refilling, water level)
     def generate_path_x_y(self):
         path = []
 
@@ -54,38 +55,47 @@ class path_planning:
         y_itr = 0
         dir_toggle = 1
 
-        while y_itr <= self.rink_width:
-            x_itr += 1 * dir_toggle
-
+        while not set(self.rink_corners).issubset(set(path)):
             path.append((x_itr, y_itr))
 
-            if x_itr in (self.rink_length, 0):
-                y_itr += 5
+            if (
+                x_itr == self.rink_length or (x_itr == 0 and not y_itr == 0)
+            ) and y_itr < self.rink_width:
+                y_itr += 10
                 dir_toggle *= -1
                 path.append((x_itr, y_itr))
 
+                # zz need to test with the robot control code to see if more or less nodes better, if less nodes:
+                # if both path lookback (idx of -1 and -2) have the same coord, do not include the current coord
+
+            x_itr += 5 * dir_toggle
+
         path = np.array(path)
-        plt.plot(path[:, 0], path[:, 1], marker="o", linestyle="-", label="Path")
-        plt.title("Path with Square Wave Pattern")
-        plt.xlabel("X-coordinate")
-        plt.ylabel("Y-coordinate")
-        plt.legend()
-        plt.grid(True)
-        plt.show()
+        self.path = copy.deepcopy(path)
 
-        self.path = path
+        return self.path
 
+    # TODO analyze the path node layout, determine what the optimal waterlevel at each node should be
     def generate_path_water_rate(self):
         pass
 
     # TODO use matplotlib, plot the path
-    def plot_path(self):
-        # Extract x and y coordinates from the Node instances
-        # x_coords = [node.x_coord for node in self.path]
-        # y_coords = [node.y_coord for node in self.path]
+    def plot_path(self, show_rink=False):
+        plt.plot(
+            self.path[:, 0], self.path[:, 1], marker="o", linestyle="-", label="Path"
+        )
+        plt.title("Path with Square Wave Pattern")
+        plt.xlabel("X-coordinate")
+        plt.ylabel("Y-coordinate")
+        plt.legend()
 
+        if show_rink:
+            self.plot_rink_border()
+        else:
+            plt.grid(True)
+
+    def plot_rink_border(self):
         # Plot the path
-        # plt.plot(x_coords, y_coords, marker="o", linestyle="-")
         plt.title("Path of the Robot")
         plt.xlabel("X-coordinate")
         plt.ylabel("Y-coordinate")
@@ -96,7 +106,7 @@ class path_planning:
             self.y_rink_coords,
             marker="o",
             linestyle="-",
-            label="Rectangle",
+            label="Rink Border",
         )
 
         plt.show()
