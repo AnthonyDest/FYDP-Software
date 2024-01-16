@@ -1,4 +1,18 @@
-import RPi.GPIO as gpio
+try:
+    import RPi.GPIO as gpio
+except ImportError:
+    gpio = None
+    print("RPi.GPIO not available. GPIO functionality will be disabled.")
+
+# import RPi.GPIO as gpio
+
+
+def check_hardware_OK():
+    if gpio is None:
+        print("GPIO Disabled")
+        return False
+    return True
+
 
 # pins use GPIO Number convention (BCM)
 LEFT_MOTOR_PWM_PIN = 16  # goes to enable
@@ -8,6 +22,10 @@ LEFT_MOTOR_IN2_PIN = 21
 
 class Motor:
     def __init__(self, pwm_pin, in_1_pin, in_2_pin):
+        if gpio is None:
+            print("GPIO Disabled")
+            return None
+
         self.pwm_pin = pwm_pin
         self.in_1 = in_1_pin
         self.in_2 = in_2_pin

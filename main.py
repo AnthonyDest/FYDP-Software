@@ -13,10 +13,8 @@ class Robot:
     # split up to test modules separately
     # zz replace passing in objects with a parent class that has all the objects
     def __init__(self):
-        self.image_processing = image_processing.image_processing()
-        self.path_planning = path_planning.path_planning(rink_length=60, rink_width=40)
         self.robot_control = robot_control.robot_control()
-        self.robot_control.initialize_modules(self.image_processing, self.path_planning)
+        self.robot_control.initialize_modules()
 
     def clear_rink(self):
         pass
@@ -26,6 +24,7 @@ class Robot:
         self.robot_control.path_planning.create_rink_border()
         self.robot_control.path_planning.generate_path()
         self.robot_control.path_planning.plot_path(show_rink=True)
+        self.robot_control.steer_robot()
 
         # TODO enter all states and how to handle here
         while True:
