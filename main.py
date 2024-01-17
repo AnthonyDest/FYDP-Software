@@ -31,6 +31,7 @@ class Robot:
 
         current_state = state.follow_path
 
+        zzEscape = 0
         # TODO enter all states and how to handle here
         while True:
             # zz update all sensor data
@@ -48,9 +49,15 @@ class Robot:
                     # call steer and drive parameters to move to next node
 
                     # steer and drive will act as an if statement for control, part of parent loop of state machine
-
-                    if self.robot_control.is_robot_near_desired_node:
+                    near_node = self.robot_control.is_robot_near_desired_node()
+                    if near_node:
                         self.robot_control.update_next_node()
+                        self.robot_control.plot_robot_position()
+
+                        # zz manual moving for simulation
+                        self.robot_control.current_position_node = (
+                            self.robot_control.desired_node
+                        )
 
                         # if node.type = travel, switch to travel_to_refill
 
@@ -65,7 +72,10 @@ class Robot:
                     pass
 
             print(f"Current State: {current_state}")
-            return None
+            zzEscape += 1
+            if zzEscape > 1000:
+                return None
+            # return None
 
 
 # accommodate robot turning on, how to enter script, necessary hardware... (https://raspberrypi-guide.github.io/programming/run-script-on-boot)

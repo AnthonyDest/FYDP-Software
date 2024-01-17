@@ -10,7 +10,7 @@ class robot_control:
         # Initialize any variables or resources here
         self.current_position_node = helper.Node(0, 0, 0, 0, 0)
         self.desired_node = helper.Node(0, 0, 0, 0, 0)
-        self.__current_step_number = 0
+        self.current_step_number = 0
 
     # zz depreciated
     def initialize_modules_pass_objs(self, image_processing, path_planning):
@@ -80,8 +80,11 @@ class robot_control:
         return False
 
     def update_next_node(self):
-        self.__current_step_number += 1
-        self.desired_node = self.path_planning.path[self.__current_step_number]
+        self.current_step_number += 1
+        self.desired_node = self.path_planning.path.nodes[self.current_step_number]
+
+    def plot_robot_position(self):
+        self.path_planning.plot_robot(self.current_position_node, show_rink=True)
 
     # TODO init PID
     def init_PID(self):
@@ -97,10 +100,10 @@ class robot_control:
         self.current_water_level = 0
         return self.current_water_level
 
-    # TODO all low level drive commands, when function recieves relative coords between two nodes
+    # TODO all low level drive commands, when function receives relative coords between two nodes
 
     # TODO get velocity from merge sensor data, primarily use encoders and pose?
-    def get_veloctiy(self):
+    def get_velocity(self):
         pass
 
     # TODO get encoder values

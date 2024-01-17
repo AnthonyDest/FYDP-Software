@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 # [x_coord, y_coord, heading, velocity]
 class Node:
     # zz consider desired vs actual, or just use robot state
-    def __init__(self, x_coord, y_coord, heading, velocity, lap_number):
+    def __init__(self, x_coord, y_coord, heading=0, velocity=0, lap_number=0):
         self.x_coord = x_coord
         self.y_coord = y_coord
         self.heading = heading
@@ -29,3 +29,43 @@ class Node:
         tolerance = 5
 
         return range(desired_coords - tolerance, desired_coords + tolerance)
+
+
+class Path:
+    def __init__(self):
+        self.nodes = []
+        self.current_step_number = 0
+        self.path_length = 0
+
+    def add_node(self, node):
+        self.nodes.append(node)
+        self.path_length += 1
+
+    def print_path(self):
+        for node in self.nodes:
+            node.node_print()
+
+    def check_if_position_in_path(self, position: Node):
+        for node in self.nodes:
+            if position == node.x_coord and position == node.y_coord:
+                return True
+        return False
+
+    def get_x_y_positions(self):
+        self.x_y_pair = []
+        for node in self.nodes:
+            self.x_y_pair.append([node.x_coord, node.y_coord])
+
+        return self.x_y_pair
+
+
+# zz may need speed improvements
+def check_nodes_in_path(sublist: Path, parent_list: Path):
+    sublist_pairs = nested_list_to_set(sublist.get_x_y_positions())
+    parent_list_pairs = nested_list_to_set(parent_list.get_x_y_positions())
+
+    return sublist_pairs.issubset(parent_list_pairs)
+
+
+def nested_list_to_set(nested_list):
+    return set(map(tuple, nested_list))
