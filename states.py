@@ -7,3 +7,4 @@ class state(Enum):
     wait_for_refill = auto()
     travel_to_refill = auto()
     travel_to_path = auto()
+    end = auto()

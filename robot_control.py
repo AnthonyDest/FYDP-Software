@@ -81,7 +81,10 @@ class robot_control:
 
     def update_next_node(self):
         self.current_step_number += 1
+        if self.current_step_number >= self.path_planning.path.path_length:
+            return False
         self.desired_node = self.path_planning.path.nodes[self.current_step_number]
+        return True
 
     def plot_robot_position(self):
         self.path_planning.plot_robot(self.current_position_node, show_rink=True)

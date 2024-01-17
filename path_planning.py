@@ -87,6 +87,11 @@ class path_planning:
 
     # TODO use matplotlib, plot the path
     def plot_path(self, show_rink=False):
+        if show_rink:
+            self.plot_rink_border(wait=True)
+        else:
+            plt.show()
+
         x_coords, y_coords = zip(*self.path.get_x_y_positions())
 
         plt.plot(x_coords, y_coords, marker="o", linestyle="-", label="Path")
@@ -96,12 +101,7 @@ class path_planning:
         plt.legend()
         plt.grid(True)
 
-        if show_rink:
-            self.plot_rink_border()
-        else:
-            plt.show()
-
-    def plot_rink_border(self):
+    def plot_rink_border(self, wait=False):
         # Plot the path
         plt.title("Path of the Robot")
         plt.xlabel("X-coordinate")
@@ -115,14 +115,20 @@ class path_planning:
             linestyle="-",
             label="Rink Border",
         )
-
-        plt.show()
-
-        pass
+        if not wait:
+            plt.show()
 
     # TODO use matplotlib, plot robot trajectory on path. Use map and path (truncate passed nodes?)
     # currently just plot current location
     def plot_robot(self, current_position_node, show_rink=False):
+        existing_labels = [line.get_label() for line in plt.gca().get_children()]
+        label_to_check = "Rink Border"
+
+        if show_rink and not label_to_check in existing_labels:
+            self.plot_rink_border()
+        else:
+            plt.show()
+
         x_coords, y_coords = (
             current_position_node.x_coord,
             current_position_node.y_coord,
@@ -141,11 +147,10 @@ class path_planning:
         plt.legend()
         plt.grid(True)
 
-        if show_rink:
-            self.plot_rink_border()
-        else:
-            plt.show()
-
         plt.ion()
 
         plt.pause(0.001)
+
+    def stop_interactive_plot(self):
+        plt.ioff()
+        plt.show()
