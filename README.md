@@ -39,10 +39,11 @@ If you don't have Miniconda installed, you can download and install it from the 
 git clone https://github.com/AnthonyDest/FYDP-Software.git
 ```
 
-### Create and Activate Conda Environment
+### Create and Activate Venv
 ```
-conda env create -f environment.yml
-conda activate fydp_env
+python -m venv fydp_venv
+.\fydp_venv\Scripts\activate
+pip install -r requirements.txt
 ```
 
 ## Pi Setup

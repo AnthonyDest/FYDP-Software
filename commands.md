@@ -16,10 +16,10 @@
 ### Install packages
 `pip install <package-name>`
 
-### Export an environment:
+### Export required packages:
 `pip freeze > requirements.txt`
 
-### Import an environment:
+### Import required packages:
 `pip install -r requirements.txt`
 
 
