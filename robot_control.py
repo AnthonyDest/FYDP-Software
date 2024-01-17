@@ -1,3 +1,4 @@
+from simple_pid import PID
 import helper
 import image_processing
 import path_planning
@@ -7,7 +8,9 @@ import motor_driver
 class robot_control:
     def __init__(self):
         # Initialize any variables or resources here
-        self.robot_node = helper.Node(0, 0, 0, 0, 0)
+        self.current_position_node = helper.Node(0, 0, 0, 0, 0)
+        self.desired_node = helper.Node(0, 0, 0, 0, 0)
+        self.__current_step_number = 0
 
     # zz depreciated
     def initialize_modules_pass_objs(self, image_processing, path_planning):
@@ -67,8 +70,26 @@ class robot_control:
     def merge_sensor_data(self):
         pass
 
+    # TODO check x and y coords of current node and desired node, if within tolerance, return true
+    def is_robot_near_desired_node(self):
+        if (
+            self.current_position_node.x_coord in self.desired_node.x_range
+            and self.current_position_node.y_coord in self.desired_node.y_range
+        ):
+            return True
+        return False
+
+    def update_next_node(self):
+        self.__current_step_number += 1
+        self.desired_node = self.path_planning.path[self.__current_step_number]
+
+    # TODO init PID
+    def init_PID(self):
+        self.steering_pid = PID(1, 0.1, 0.05, setpoint=1)
+
     # TODO steer robot to desired heading
     def steer_robot(self):
+        self.get_steering_velocity()
         pass
 
     # TODO determine how to get water level. Sensor, or integral of time and flow rate?

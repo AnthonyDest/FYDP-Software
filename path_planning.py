@@ -54,6 +54,9 @@ class path_planning:
         x_itr = 0
         y_itr = 0
         dir_toggle = 1
+        step_number = (
+            0  # zz temp, will be changed when traveling to refill steps are included
+        )
 
         while not set(self.rink_corners).issubset(set(path)):
             path.append((x_itr, y_itr))

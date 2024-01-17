@@ -10,7 +10,12 @@ class Node:
         self.y_coord = y_coord
         self.heading = heading
         self.velocity = velocity
-        self.lap_number = lap_number
+        self.lap_number = lap_number  # zz remove?
+        self.step_number = 0
+        self.water_flow_rate = 0
+
+        self.x_range = self.state_tolerance_range(self.x_coord)
+        self.y_range = self.state_tolerance_range(self.y_coord)
 
         # zz consider adding a time stamp
         # zz consider other properties: flowrate, "state" (regular flood, refilling, repositioning...), etc
@@ -19,3 +24,8 @@ class Node:
         print(
             f"Node: x_coord={self.x_coord}, y_coord={self.y_coord}, heading={self.heading}, velocity={self.velocity}, lap_number={self.lap_number}"
         )
+
+    def state_tolerance_range(self, desired_coords):
+        tolerance = 5
+
+        return range(desired_coords - tolerance, desired_coords + tolerance)

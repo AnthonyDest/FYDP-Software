@@ -1,6 +1,7 @@
 import image_processing
 import path_planning
 import robot_control
+import states
 
 # Code is split into 4 modules:
 # image_processing.py   - used for machine vision and localization
@@ -24,10 +25,46 @@ class Robot:
         self.robot_control.path_planning.create_rink_border()
         self.robot_control.path_planning.generate_path()
         self.robot_control.path_planning.plot_path(show_rink=True)
-        self.robot_control.steer_robot()
+        # self.robot_control.steer_robot()
+
+        state = states.state
+
+        current_state = state.follow_path
 
         # TODO enter all states and how to handle here
         while True:
+            # zz update all sensor data
+            # encoder, steering velocity, motor velocity, IMU positioning...
+            self.robot_control.read_in_all_sensor_data()
+
+            match current_state:
+                case state.initialization:
+                    pass
+
+                case state.follow_path:
+                    # iterate through each node in list
+
+                    # calculate relative change between current status node and desired node
+                    # call steer and drive parameters to move to next node
+
+                    # steer and drive will act as an if statement for control, part of parent loop of state machine
+
+                    if self.robot_control.is_robot_near_desired_node:
+                        self.robot_control.update_next_node()
+
+                        # if node.type = travel, switch to travel_to_refill
+
+                        pass
+                case state.wait_for_refill:
+                    pass
+                case state.travel_to_refill:
+                    pass
+                case state.travel_to_path:
+                    pass
+                case _:
+                    pass
+
+            print(f"Current State: {current_state}")
             return None
 
 
