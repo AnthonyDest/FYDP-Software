@@ -24,8 +24,8 @@ class Robot:
     def state_machine(self):
         self.robot_control.path_planning.create_rink_border()
         self.robot_control.path_planning.generate_path()
-        self.robot_control.path_planning.plot_rink_border()
-        self.robot_control.path_planning.plot_path(show_rink=True)
+        # self.robot_control.path_planning.plot_rink_border()
+        # self.robot_control.path_planning.plot_path(show_rink=True)
         self.robot_control.plot_robot_position()
         # self.robot_control.steer_robot()
 

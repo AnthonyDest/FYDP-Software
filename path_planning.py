@@ -62,14 +62,14 @@ class path_planning:
         # while not self.path.check_if_position_in_path((self.rink_corners, 0)):
         while not helper.check_nodes_in_path(self.rink_corners, self.path):
             # path.append((x_itr, y_itr))
-            self.path.add_node(helper.Node(x_itr, y_itr, 0, 0, 0))
+            self.path.add_node(helper.Node(x_itr, y_itr, 0, 0))
 
             if (
                 x_itr == self.rink_length or (x_itr == 0 and not y_itr == 0)
             ) and y_itr < self.rink_width:
                 y_itr += 10
                 dir_toggle *= -1
-                self.path.add_node(helper.Node(x_itr, y_itr, 0, 0, 0))
+                self.path.add_node(helper.Node(x_itr, y_itr, 0, 0))
 
                 # zz need to test with the robot control code to see if more or less nodes better, if less nodes:
                 # if both path lookback (idx of -1 and -2) have the same coord, do not include the current coord

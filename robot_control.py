@@ -1,4 +1,5 @@
 import math
+import numpy as np
 from simple_pid import PID
 import helper
 import image_processing
@@ -10,15 +11,17 @@ import logging
 class robot_control:
     def __init__(self):
         # Initialize any variables or resources here
-        self.current_position_node = helper.Node(0, 0, 0, 0, 0)
-        self.desired_node = helper.Node(0, 0, 0, 0, 0)
+        self.current_position_node = helper.Node(0, 0, 0)
+        self.desired_node = helper.Node(0, 0, 0)
         self.current_step_number = 0
         self.steering_velocity = 0  # angle per second
+        self.steering_lock_angle_rad = math.radians(30)  # rads
         self.drive_velocity = 0  # meters per second
         self.time_at_last_update = 0
         self.timer = helper.timer()
         self.heading = helper.heading()
-        self.steering_angle = 0
+        # self.desired_heading = 0
+        # self.current_heading = 0
 
     # zz depreciated
     def initialize_modules_pass_objs(self, image_processing, path_planning):
@@ -120,7 +123,7 @@ class robot_control:
     def drive_path(self, simulate_feedback=False):
         'has PID "loops" for steering and drive motors. also has the option to simulate motor feedback'
 
-        zz_temp_new_velocity = 2
+        zz_temp_new_velocity = 1
         # zz_temp_new_heading = self.current_position_node.heading
         self.steer_robot()
         # self.steering_angle = math.atan2(0, 10)
@@ -131,7 +134,11 @@ class robot_control:
         # print(self.steering_angle)
         # self.steering_angle = math.atan2(-10, 0)
         # print(self.steering_angle)
-        zz_temp_new_heading = self.steering_angle
+
+        # self.steering_angle = self.desired_steering_heading
+
+        # we have  self.heading.current_steering_angle
+        # need to figure out how to use relative steering angle and current heading to get new current heading
 
         if simulate_feedback:
             # use velocity * change in elapsed time to calculate distance moved
@@ -143,21 +150,42 @@ class robot_control:
             # print(time)
             # zz time removed debugging
             # distance = self.drive_velocity * time
+
+            # Driving Simulation
             distance = self.drive_velocity
 
-            x_dist = self.heading.get_x_component(zz_temp_new_heading) * distance
-            y_dist = self.heading.get_y_component(zz_temp_new_heading) * distance
-            self.current_position_node.x_coord += (
-                self.heading.get_x_component(zz_temp_new_heading) * distance
+            self.heading.current_heading += self.heading.current_steering_angle
+            if abs(self.heading.current_heading) > np.pi:
+                self.heading.current_heading -= (
+                    np.sign(self.heading.current_heading) * 2 * np.pi
+                )
+                # self.heading.current_heading = np.mod(
+                #     self.heading.current_heading + np.pi, np.pi
+                # )
+            # self.heading
+
+            ###
+
+            x_dist = (
+                self.heading.get_x_component(self.heading.current_heading) * distance
             )
-            self.current_position_node.y_coord += (
-                self.heading.get_y_component(zz_temp_new_heading) * distance
+            y_dist = (
+                self.heading.get_y_component(self.heading.current_heading) * distance
             )
+            self.current_position_node.x_coord += x_dist
+            self.current_position_node.y_coord += y_dist
+
+            # Heading Simulation
+
+            # heading.
 
             # logging.debug(f"x_dist={x_dist}, y_dist={y_dist}")
             # print(f"x_dist={x_dist}, y_dist={y_dist}")
+            # print(
+            #     f"Heading: {zz_temp_new_heading}, To Coord: ({self.desired_node.x_coord}, {self.desired_node.y_coord}), Current Coord: ({self.current_position_node.x_coord}, {self.current_position_node.y_coord}), X_range = {self.desired_node.x_range}, Y_range = {self.desired_node.y_range}"
+            # )
             print(
-                f"Heading: {zz_temp_new_heading}, To Coord: ({self.desired_node.x_coord}, {self.desired_node.y_coord}), Current Coord: ({self.current_position_node.x_coord}, {self.current_position_node.y_coord}), X_range = {self.desired_node.x_range}, Y_range = {self.desired_node.y_range}"
+                f"To Coord: ({self.desired_node.x_coord}, {self.desired_node.y_coord}), Current Coord: ({self.current_position_node.x_coord:.2f}, {self.current_position_node.y_coord:.2f}), Desired Heading: {self.heading.desired_heading:.2f}, Current heading: {self.heading.current_heading:.2f}, Required Steering Angle: {self.heading.desired_steering_angle:.2f}, Current Steering Angle: {self.heading.current_steering_angle:.2f}"
             )
 
     # TODO init PID
@@ -175,7 +203,30 @@ class robot_control:
 
         # delta_x = min(delta_x, 0)  # ensure no divide by zero error
         # self.steering_angle = delta_y / delta_x
-        self.steering_angle = math.atan2(delta_y, delta_x)
+        self.heading.desired_heading = math.atan2(delta_y, delta_x)
+
+        # determine if relative angle is larger than steering lock
+        self.heading.desired_steering_angle = (
+            self.heading.desired_heading - self.heading.current_heading
+        )
+
+        # zz steering overflow
+        if abs(self.heading.desired_steering_angle) > np.pi:
+            self.heading.desired_steering_angle -= (
+                np.sign(self.heading.desired_steering_angle) * 2 * np.pi
+            )
+
+        # max steering lock
+        if abs(self.heading.desired_steering_angle) > self.steering_lock_angle_rad:
+            self.heading.current_steering_angle = (
+                np.sign(self.heading.desired_steering_angle)
+                * self.steering_lock_angle_rad
+            )
+        else:
+            self.heading.current_steering_angle = self.heading.desired_steering_angle
+            # self.heading.current_steering_angle = np.mod(
+            #     self.heading.current_steering_angle + np.pi, np.pi
+            # )
 
     # TODO determine how to get water level. Sensor, or integral of time and flow rate?
     def get_water_level(self):

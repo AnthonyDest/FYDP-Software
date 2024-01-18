@@ -8,10 +8,9 @@ import numpy as np
 # [x_coord, y_coord, heading, velocity]
 class Node:
     # zz consider desired vs actual, or just use robot state
-    def __init__(self, x_coord, y_coord, heading=0, velocity=0, lap_number=0):
+    def __init__(self, x_coord, y_coord, velocity=0, lap_number=0):
         self.x_coord = x_coord
         self.y_coord = y_coord
-        self.heading = heading
         self.velocity = velocity
         self.lap_number = lap_number  # zz remove?
         self.step_number = 0
@@ -94,7 +93,7 @@ class timer:
     # get change in time in seconds
     def get_delta_time(self):
         self.delta_time = self.get_current_time() - self.start_time
-        print(f"start_time={self.start_time}, delta_time={self.delta_time}")
+        # print(f"start_time={self.start_time}, delta_time={self.delta_time}")
         self.start_time = self.get_current_time()
 
         return self.delta_time
@@ -102,7 +101,11 @@ class timer:
 
 class heading:
     def __init__(self):
-        pass
+        self.desired_heading = 0
+        self.current_heading = 0
+
+        self.desired_steering_angle = 0
+        self.current_steering_angle = 0
 
     # TODO get current heading
     def get_current_heading(self):
@@ -124,3 +127,9 @@ class heading:
         if degrees:
             heading = math.radians(heading)
         return math.sin(heading)
+
+    def print_heading(self):
+        # print(
+        #     f"To Coord: ({self.desired_node.x_coord}, {self.desired_node.y_coord}), Current Coord: ({self.current_position_node.x_coord}, {self.current_position_node.y_coord}), Desired Heading: {self.desired_heading}, Current heading: {self.current_position_node.heading}, Required Steering Angle: {self.required_steering_angle}, Current Steering Angle: {self.steering_angle}"
+        # )
+        pass
