@@ -89,8 +89,6 @@ class path_planning:
     def plot_path(self, show_rink=False):
         if show_rink:
             self.plot_rink_border(wait=True)
-        else:
-            plt.show()
 
         x_coords, y_coords = zip(*self.path.get_x_y_positions())
 
@@ -101,9 +99,17 @@ class path_planning:
         plt.legend()
         plt.grid(True)
 
+        # ax = plt.gca()
+        # set xlimit of plot
+
+        plt.xlim([-10, self.rink_length + 10])
+        plt.ylim([-10, self.rink_width + 10])
+
+        plt.show()
+
     def plot_rink_border(self, wait=False):
         # Plot the path
-        plt.title("Path of the Robot")
+        plt.title("Rink Border")
         plt.xlabel("X-coordinate")
         plt.ylabel("Y-coordinate")
         plt.grid(True)
@@ -125,9 +131,7 @@ class path_planning:
         label_to_check = "Rink Border"
 
         if show_rink and not label_to_check in existing_labels:
-            self.plot_rink_border()
-        else:
-            plt.show()
+            self.plot_rink_border(wait=True)
 
         x_coords, y_coords = (
             current_position_node.x_coord,
@@ -146,6 +150,8 @@ class path_planning:
         plt.ylabel("Y-coordinate")
         plt.legend()
         plt.grid(True)
+        plt.xlim([-10, self.rink_length + 10])
+        plt.ylim([-10, self.rink_width + 10])
 
         plt.ion()
 

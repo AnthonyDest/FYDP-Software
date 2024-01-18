@@ -1,4 +1,7 @@
+import math
+import time
 import matplotlib.pyplot as plt
+import numpy as np
 
 
 # contains information relating to robot current or desired kinematic state
@@ -25,10 +28,18 @@ class Node:
             f"Node: x_coord={self.x_coord}, y_coord={self.y_coord}, heading={self.heading}, velocity={self.velocity}, lap_number={self.lap_number}"
         )
 
+    # TODO accept float tolerance
     def state_tolerance_range(self, desired_coords):
-        tolerance = 5
-
-        return range(desired_coords - tolerance, desired_coords + tolerance)
+        tolerance = 1
+        # tolerance_range = range(
+        #     desired_coords - tolerance, desired_coords + tolerance, 1
+        # )
+        # return tolerance_range
+        # tolerance_range = np.arange(
+        #     desired_coords - tolerance, desired_coords + tolerance, 1
+        # )
+        tolerance_range = [desired_coords - tolerance, desired_coords + tolerance]
+        return tolerance_range
 
 
 class Path:
@@ -69,3 +80,47 @@ def check_nodes_in_path(sublist: Path, parent_list: Path):
 
 def nested_list_to_set(nested_list):
     return set(map(tuple, nested_list))
+
+
+class timer:
+    def __init__(self):
+        self.start_time = self.get_current_time()
+        self.delta_time = 0
+
+    # get current time in seconds
+    def get_current_time(self):
+        return time.time()
+
+    # get change in time in seconds
+    def get_delta_time(self):
+        self.delta_time = self.get_current_time() - self.start_time
+        print(f"start_time={self.start_time}, delta_time={self.delta_time}")
+        self.start_time = self.get_current_time()
+
+        return self.delta_time
+
+
+class heading:
+    def __init__(self):
+        pass
+
+    # TODO get current heading
+    def get_current_heading(self):
+        pass
+
+    # TODO get desired heading
+    def get_desired_heading(self):
+        pass
+
+    def get_x_component(self, heading, degrees=False):
+        "gets angle in degrees, converts to rads, and returns multiplier"
+        if degrees:
+            heading = math.radians(heading)
+        return math.cos(heading)
+
+    def get_y_component(self, heading, degrees=False):
+        "gets angle in degrees, converts to rads, and returns multiplier"
+
+        if degrees:
+            heading = math.radians(heading)
+        return math.sin(heading)
