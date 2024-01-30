@@ -1,4 +1,5 @@
 import math
+import keyboard
 import numpy as np
 from simple_pid import PID
 import helper
@@ -22,6 +23,8 @@ class robot_control:
         self.heading = helper.heading()
         # self.desired_heading = 0
         # self.current_heading = 0
+        self.left_motor = None
+        self.right_motor = None
 
     # zz depreciated
     def initialize_modules_pass_objs(self, image_processing, path_planning):
@@ -43,21 +46,34 @@ class robot_control:
     def initalize_hardware(self):
         # initalize motors
 
+        LEFT_MOTOR_PWM_PIN = 16  # goes to enable
+        LEFT_MOTOR_IN1_PIN = 20
+        LEFT_MOTOR_IN2_PIN = 21
+
+        RIGHT_MOTOR_PWM_PIN = 19  # goes to enable
+        RIGHT_MOTOR_IN1_PIN = 23
+        RIGHT_MOTOR_IN2_PIN = 24
+
+        self.left_motor = motor_driver.Motor(
+            pwm_pin=LEFT_MOTOR_PWM_PIN,
+            in_1_pin=LEFT_MOTOR_IN1_PIN,
+            in_2_pin=LEFT_MOTOR_IN2_PIN,
+        )
+
+        self.right_motor = motor_driver.Motor(
+            pwm_pin=RIGHT_MOTOR_PWM_PIN,
+            in_1_pin=RIGHT_MOTOR_IN1_PIN,
+            in_2_pin=RIGHT_MOTOR_IN2_PIN,
+        )
+
+        self.left_motor.speed = 0
+        self.right_motor.speed = 0
+
         # check hardware status
         hardware_OK = motor_driver.check_hardware_OK()
         if not hardware_OK:
             print("Hardware not OK")
             return None
-
-        LEFT_MOTOR_PWM_PIN = 16  # goes to enable
-        LEFT_MOTOR_IN1_PIN = 20
-        LEFT_MOTOR_IN2_PIN = 21
-
-        left_motor = motor_driver.Motor(
-            pwm_pin=LEFT_MOTOR_PWM_PIN,
-            in_1_pin=LEFT_MOTOR_IN1_PIN,
-            in_2_pin=LEFT_MOTOR_IN2_PIN,
-        )
 
     # TODO drive to a node, calculate relative coords
     def drive_to_node(self, node: helper.Node):
@@ -123,7 +139,6 @@ class robot_control:
     def drive_path(self, simulate_feedback=False):
         'has PID "loops" for steering and drive motors. also has the option to simulate motor feedback'
 
-        zz_temp_new_velocity = 1
         # zz_temp_new_heading = self.current_position_node.heading
         self.steer_robot()
         # self.steering_angle = math.atan2(0, 10)
@@ -135,17 +150,22 @@ class robot_control:
         # self.steering_angle = math.atan2(-10, 0)
         # print(self.steering_angle)
 
+        zz_temp_new_velocity = 1
+        if self.drive_velocity != zz_temp_new_velocity:
+            self.drive_velocity = zz_temp_new_velocity
+        self.simulate_feedback(enable=True)
         # self.steering_angle = self.desired_steering_heading
 
         # we have  self.heading.current_steering_angle
         # need to figure out how to use relative steering angle and current heading to get new current heading
 
-        if simulate_feedback:
+    def simulate_feedback(self, enable=False):
+        if enable:
             # use velocity * change in elapsed time to calculate distance moved
             # TODO replace velocity with a function that uses encoders and pose to calculate velocity
-
-            if self.drive_velocity != zz_temp_new_velocity:
-                self.drive_velocity = zz_temp_new_velocity
+            # zz_temp_new_velocity = 1
+            # if self.drive_velocity != zz_temp_new_velocity:
+            #     self.drive_velocity = zz_temp_new_velocity
             time = self.timer.get_delta_time()
             # print(time)
             # zz time removed debugging
@@ -195,20 +215,26 @@ class robot_control:
     # TODO steer robot to desired heading
     def steer_robot(self):
         # self.get_steering_velocity()
-        delta_y = self.desired_node.y_coord - self.current_position_node.y_coord
-        delta_x = self.desired_node.x_coord - self.current_position_node.x_coord
 
-        if delta_x == 0:
-            delta_x = 1
+        # determine desired heading between current position and desired node
 
-        # delta_x = min(delta_x, 0)  # ensure no divide by zero error
-        # self.steering_angle = delta_y / delta_x
-        self.heading.desired_heading = math.atan2(delta_y, delta_x)
-
-        # determine if relative angle is larger than steering lock
-        self.heading.desired_steering_angle = (
-            self.heading.desired_heading - self.heading.current_heading
+        (
+            self.heading.desired_heading,
+            self.heading.desired_steering_angle,
+        ) = self.path_planning.get_desired_heading_steering_between_nodes(
+            self.desired_node, self.current_position_node, self.heading.current_heading
         )
+
+        # self.heading.desired_heading = (
+        #     self.path_planning.get_desired_heading_between_nodes(
+        #         self.desired_node, self.current_position_node
+        #     )
+        # )
+
+        # #
+        # self.heading.desired_steering_angle = (
+        #     self.heading.desired_heading - self.heading.current_heading
+        # )
 
         # zz steering overflow
         if abs(self.heading.desired_steering_angle) > np.pi:
@@ -242,3 +268,49 @@ class robot_control:
     # TODO get encoder values
     def get_encoder_values(self):
         pass
+
+    def read_arrow_keys(self):
+        try:
+            # Check for each arrow key independently
+            up_pressed = keyboard.is_pressed("up")
+            down_pressed = keyboard.is_pressed("down")
+            left_pressed = keyboard.is_pressed("left")
+            right_pressed = keyboard.is_pressed("right")
+
+            if up_pressed:
+                print("Up arrow key pressed")
+                # give forward velocity, L R + 50%
+                # self.left_motor.speed = 50
+                # self.right_motor.speed = 50
+                self.drive_velocity = 1
+
+                # self.left_motor.set_speed(50)
+                # self.right_motor.set_speed(50)
+
+            elif down_pressed:
+                print("Down arrow key pressed")
+                # give backward velocity, L R - 50%
+                # self.left_motor.speed = -50
+                # self.right_motor.speed = -50
+                self.drive_velocity = -1
+            else:
+                self.drive_velocity = 0
+
+            if left_pressed:
+                print("Left arrow key pressed")
+                # give left velocity, L - 25%, R + 25%
+                # self.left_motor.speed = 25
+                # self.right_motor.speed = 75
+                self.heading.current_steering_angle = +self.steering_lock_angle_rad / 5
+
+            elif right_pressed:
+                print("Right arrow key pressed")
+                # give right velocity, L + 25%, R - 25%
+                # self.left_motor.speed = 75
+                # self.right_motor.speed = 25
+                self.heading.current_steering_angle = -self.steering_lock_angle_rad / 5
+            else:
+                self.heading.current_steering_angle = 0
+
+        except Exception as e:
+            print(f"An error occurred: {e}")

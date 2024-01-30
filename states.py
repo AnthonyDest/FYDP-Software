@@ -8,3 +8,4 @@ class state(Enum):
     travel_to_refill = auto()
     travel_to_path = auto()
     end = auto()
+    manual = auto()

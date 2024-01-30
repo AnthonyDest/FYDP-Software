@@ -1,3 +1,4 @@
+import math
 import numpy as np
 import helper
 import matplotlib.pyplot as plt
@@ -9,7 +10,7 @@ class path_planning:
         self.rink_length = rink_length
         self.rink_width = rink_width
         # hyperparameters:
-        self.turn_radius_m = 1
+        self.max_steering_lock_angle_rad = 1
         self.path_width_m = 1
         self.path_overlap_m = 0.2
         self.normal_velocity_straight_mps = 1
@@ -52,14 +53,10 @@ class path_planning:
 
     # TODO improve path planning algorithm (better pattern, refilling, water level)
     def generate_path_x_y(self):
-        # path = []
-
         x_itr = 0
         y_itr = 0
         dir_toggle = 1
 
-        # while not set(self.rink_corners).issubset(set(self.path.nodes)):
-        # while not self.path.check_if_position_in_path((self.rink_corners, 0)):
         while not helper.check_nodes_in_path(self.rink_corners, self.path):
             # path.append((x_itr, y_itr))
             self.path.add_node(helper.Node(x_itr, y_itr, 0, 0))
@@ -76,10 +73,52 @@ class path_planning:
 
             x_itr += 5 * dir_toggle
 
-        # path = np.array(path)
-        # self.path = copy.deepcopy(path)
+        self.add_lookahead_radius_to_path(self.max_steering_lock_angle_rad)
+        self.label_path_steps()
 
-        # return self.path
+    def add_lookahead_radius_to_path(self, max_radius_radians):
+        heading_simulator = helper.heading()
+
+        for idx, node in enumerate(self.path.nodes[:-1]):
+            (
+                desired_heading,
+                steering_angle,
+            ) = self.get_desired_heading_steering_between_nodes(
+                self.path.nodes[idx + 1], node, heading_simulator.current_heading
+            )
+
+            # if turn is too sharp, make it wider
+            # if abs(steering_angle) > max_radius_radians:
+
+            # if self.get_desired_heading_steering_between_nodes(
+            #     self.path.nodes[idx + 1], node
+            # ) >
+            # pass
+
+        pass
+
+    def label_path_steps(self):
+        for idx, node in enumerate(self.path.nodes):
+            node.step_number = idx
+
+    def get_desired_heading_steering_between_nodes(
+        self, desired_node, current_node, current_heading
+    ):
+        delta_y = desired_node.y_coord - current_node.y_coord
+        delta_x = desired_node.x_coord - current_node.x_coord
+
+        # ensure no divide by 0 error
+        if delta_x == 0:
+            delta_x = 1
+
+        desired_heading = math.atan2(delta_y, delta_x)
+
+        # if current_heading is None:
+        #     return desired_heading
+
+        update_heading = desired_heading - current_heading
+
+        return desired_heading, update_heading
 
     # TODO analyze the path node layout, determine what the optimal waterlevel at each node should be
     def generate_path_water_rate(self):
