@@ -22,16 +22,14 @@ LEFT_MOTOR_IN2_PIN = 21
 
 class Motor:
     def __init__(self, pwm_pin, in_1_pin, in_2_pin):
-        if gpio is None:
-            print("GPIO Disabled")
-            return None
-
         self.pwm_pin = pwm_pin
         self.in_1 = in_1_pin
         self.in_2 = in_2_pin
 
         self.speed = 0
-
+        if gpio is None:
+            print("GPIO Disabled")
+            return None
         # configure pins
         gpio.setmode(gpio.BCM)
         gpio.setup(self.pwm_pin, gpio.OUT)
@@ -82,4 +80,4 @@ class Motor:
         gpio.cleanup()
 
 
-left_motor = Motor(LEFT_MOTOR_PWM_PIN, LEFT_MOTOR_IN1_PIN, LEFT_MOTOR_IN2_PIN)
+# left_motor = Motor(LEFT_MOTOR_PWM_PIN, LEFT_MOTOR_IN1_PIN, LEFT_MOTOR_IN2_PIN)

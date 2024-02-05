@@ -1,7 +1,9 @@
+import sys
 import image_processing
 import path_planning
 import robot_control
 import states
+import argparse
 
 # Code is split into 4 modules:
 # image_processing.py   - used for machine vision and localization
@@ -31,7 +33,13 @@ class Robot:
 
         state = states.state
 
-        current_state = state.follow_path
+        # make hyperparameter/arg
+
+        if teleop_enable:
+            current_state = state.manual
+        else:
+            current_state = state.follow_path
+
         self.robot_control.reset_timer()
 
         zzEscape = 0
@@ -82,11 +90,25 @@ class Robot:
                 case state.travel_to_path:
                     pass
 
+                case state.manual:
+                    # near_node = self.robot_control.is_robot_near_desired_node()
+
+                    self.robot_control.read_arrow_keys()
+
+                    self.robot_control.simulate_feedback(enable=True)
+
+                    self.robot_control.plot_robot_position()
+
+                    pass
+
                 case state.end:
                     print("Travel done")
 
                     # wait for user to finish analyzing plots
                     self.robot_control.path_planning.stop_interactive_plot()
+
+                    self.robot_control.plot_robot_position()
+
                     # plt.ioff
                     return None
 
@@ -95,9 +117,9 @@ class Robot:
 
             # print(f"Current State: {current_state}")
             zzEscape += 1
-            if zzEscape > 2000:
-                print("zzEscape")
-                return None
+            # if zzEscape > 2000:
+            #     print("zzEscape")
+            #     return None
 
 
 # accommodate robot turning on, how to enter script, necessary hardware... (https://raspberrypi-guide.github.io/programming/run-script-on-boot)
@@ -108,5 +130,17 @@ def turn_on_robot():
 
 # initialize all
 if __name__ == "__main__":
-    robot = Robot()
-    robot.state_machine()
+    parser = argparse.ArgumentParser(description="IndexEngine")
+    parser.add_argument("--teleop", action="store_true", help="Enable teleop")
+
+try:
+    cli = parser.parse_args()
+
+    # Set teleop_enable to True if --teleop is specified
+    teleop_enable = cli.teleop
+
+except Exception as e:
+    print("Error:", str(e))
+    sys.exit(1)
+robot = Robot()
+robot.state_machine()

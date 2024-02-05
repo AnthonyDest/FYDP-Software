@@ -12,7 +12,6 @@ class Node:
         self.x_coord = x_coord
         self.y_coord = y_coord
         self.velocity = velocity
-        self.lap_number = lap_number  # zz remove?
         self.step_number = 0
         self.water_flow_rate = 0
 
@@ -27,16 +26,9 @@ class Node:
             f"Node: x_coord={self.x_coord}, y_coord={self.y_coord}, heading={self.heading}, velocity={self.velocity}, lap_number={self.lap_number}"
         )
 
-    # TODO accept float tolerance
+    # TODO accept float tolerance, hyperparameter
     def state_tolerance_range(self, desired_coords):
         tolerance = 1
-        # tolerance_range = range(
-        #     desired_coords - tolerance, desired_coords + tolerance, 1
-        # )
-        # return tolerance_range
-        # tolerance_range = np.arange(
-        #     desired_coords - tolerance, desired_coords + tolerance, 1
-        # )
         tolerance_range = [desired_coords - tolerance, desired_coords + tolerance]
         return tolerance_range
 
