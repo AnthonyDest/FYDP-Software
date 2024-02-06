@@ -15,14 +15,14 @@ class robot_control:
         self.current_position_node = helper.Node(0, 0, 0)
         self.desired_node = helper.Node(0, 0, 0)
         self.current_step_number = 0
-        self.steering_velocity = 0  # angle per second
-        self.steering_lock_angle_rad = math.radians(30)  # rads
-        self.drive_velocity = 0  # meters per second
+        # self.steering_velocity = 0  # angle per second
+        self.steering_lock_angle_rad = math.radians(30)  # rads # zz make hyperparameter
+        self.max_speed_mps = 1  # rads # zz make hyperparameter
+        self.desired_drive_velocity = 0  # meters per second
+        self.current_drive_velocity = 0  # meters per second
         self.time_at_last_update = 0
         self.timer = helper.timer()
         self.heading = helper.heading()
-        # self.desired_heading = 0
-        # self.current_heading = 0
         self.left_motor = None
         self.right_motor = None
 
@@ -139,104 +139,97 @@ class robot_control:
     def drive_path(self, simulate_feedback=False):
         'has PID "loops" for steering and drive motors. also has the option to simulate motor feedback'
 
-        # zz_temp_new_heading = self.current_position_node.heading
-        self.steer_robot()
-        # self.steering_angle = math.atan2(0, 10)
-        # print(self.steering_angle)
-        # self.steering_angle = math.atan2(10, 0)
-        # print(self.steering_angle)
-        # self.steering_angle = math.atan2(0, -10)
-        # print(self.steering_angle)
-        # self.steering_angle = math.atan2(-10, 0)
-        # print(self.steering_angle)
+        # controls steering, either auto path follow to next node, or teleop
+        # if driving path, it will never be teleop
+        self.steer_robot(teleop_enable=False)
+        self.speed_robot(teleop_enable=False)
 
-        zz_temp_new_velocity = 1
-        if self.drive_velocity != zz_temp_new_velocity:
-            self.drive_velocity = zz_temp_new_velocity
-        self.simulate_feedback(enable=True)
-        # self.steering_angle = self.desired_steering_heading
+        # sets current = desired (both steering a)
+        self.execute_desired(simulate=simulate_feedback)
 
-        # we have  self.heading.current_steering_angle
-        # need to figure out how to use relative steering angle and current heading to get new current heading
+    def execute_desired(self, simulate=False):
+        """Drive: Receives velocity and steering angle, updates position based on velocity and heading
+        If simulate = True, provide a velocity of 1"""
 
-    def simulate_feedback(self, enable=False):
-        if enable:
-            # use velocity * change in elapsed time to calculate distance moved
-            # TODO replace velocity with a function that uses encoders and pose to calculate velocity
-            # zz_temp_new_velocity = 1
-            # if self.drive_velocity != zz_temp_new_velocity:
-            #     self.drive_velocity = zz_temp_new_velocity
-            time = self.timer.get_delta_time()
-            # print(time)
-            # zz time removed debugging
-            # distance = self.drive_velocity * time
+        if simulate:
 
-            # Driving Simulation
-            distance = self.drive_velocity
+            # zz execute steering commands to motor hardware
+            self.execute_steering()
 
-            self.heading.current_heading += self.heading.current_steering_angle
-            if abs(self.heading.current_heading) > np.pi:
-                self.heading.current_heading -= (
-                    np.sign(self.heading.current_heading) * 2 * np.pi
-                )
-                # self.heading.current_heading = np.mod(
-                #     self.heading.current_heading + np.pi, np.pi
-                # )
-            # self.heading
+            # zz execute drive commands to motor hardware
+            self.execute_velocity()
 
-            ###
+            # TODO use velocity x timestep to calculate distance
+            distance = self.current_drive_velocity / 2
 
-            x_dist = (
-                self.heading.get_x_component(self.heading.current_heading) * distance
+        else:  # zz technically, this also simulates movement until we get encoders
+
+            # zz execute steering commands to motor hardware
+            self.execute_steering()
+
+            # zz execute drive commands to motor hardware
+            # self.execute_velocity()
+            self.execute_drive(simulate=simulate)
+
+            # TODO use velocity x timestep to calculate distance based on encoder values
+            distance = self.current_drive_velocity / 2
+
+        # use velocity * change in elapsed time to calculate distance moved
+        # TODO replace velocity with a function that uses encoders and pose to calculate velocity
+        # zz_temp_new_velocity = 1
+        # if self.drive_velocity != zz_temp_new_velocity:
+        #     self.drive_velocity = zz_temp_new_velocity
+        time = self.timer.get_delta_time()
+        # print(time)
+        # zz time removed debugging
+        # distance = self.drive_velocity * time
+
+        # Driving Simulation
+
+        # heading orientation overflow
+        self.heading.current_heading += self.heading.current_steering_angle
+        if abs(self.heading.current_heading) > np.pi:
+            self.heading.current_heading -= (
+                np.sign(self.heading.current_heading) * 2 * np.pi
             )
-            y_dist = (
-                self.heading.get_y_component(self.heading.current_heading) * distance
-            )
-            self.current_position_node.x_coord += x_dist
-            self.current_position_node.y_coord += y_dist
 
-            # Heading Simulation
+        x_dist = self.heading.get_x_component(self.heading.current_heading) * distance
+        y_dist = self.heading.get_y_component(self.heading.current_heading) * distance
+        self.current_position_node.x_coord += x_dist
+        self.current_position_node.y_coord += y_dist
 
-            # heading.
-
-            # logging.debug(f"x_dist={x_dist}, y_dist={y_dist}")
-            # print(f"x_dist={x_dist}, y_dist={y_dist}")
-            # print(
-            #     f"Heading: {zz_temp_new_heading}, To Coord: ({self.desired_node.x_coord}, {self.desired_node.y_coord}), Current Coord: ({self.current_position_node.x_coord}, {self.current_position_node.y_coord}), X_range = {self.desired_node.x_range}, Y_range = {self.desired_node.y_range}"
-            # )
-            print(
-                f"To Coord: ({self.desired_node.x_coord}, {self.desired_node.y_coord}), Current Coord: ({self.current_position_node.x_coord:.2f}, {self.current_position_node.y_coord:.2f}), Desired Heading: {self.heading.desired_heading:.2f}, Current heading: {self.heading.current_heading:.2f}, Required Steering Angle: {self.heading.desired_steering_angle:.2f}, Current Steering Angle: {self.heading.current_steering_angle:.2f}"
-            )
+        print(
+            f"To Coord: ({self.desired_node.x_coord}, {self.desired_node.y_coord}), Current Coord: ({self.current_position_node.x_coord:.2f}, {self.current_position_node.y_coord:.2f}), Desired Heading: {self.heading.desired_heading:.2f}, Current heading: {self.heading.current_heading:.2f}, Required Steering Angle: {self.heading.desired_steering_angle:.2f}, Current Steering Angle: {self.heading.current_steering_angle:.2f}"
+        )
 
     # TODO init PID
     def init_PID(self):
         self.steering_pid = PID(1, 0.1, 0.05, setpoint=1)
 
     # TODO steer robot to desired heading
-    def steer_robot(self):
+    def steer_robot(self, teleop_enable=False):
+        """Determines required coords between current node and next, updates desired movements accordingly
+        Teleop_enable: if true, allows for manual control of robot via arrow keys"""
         # self.get_steering_velocity()
 
+        # Path VS Teleop
         # determine desired heading between current position and desired node
+        if not teleop_enable:
+            (
+                self.heading.desired_heading,
+                self.heading.desired_steering_angle,
+            ) = self.path_planning.get_desired_heading_steering_between_nodes(
+                self.desired_node,
+                self.current_position_node,
+                self.heading.current_heading,
+            )
+        # else desired input is called via teleop
+        else:
+            self.read_arrow_keys()
 
-        (
-            self.heading.desired_heading,
-            self.heading.desired_steering_angle,
-        ) = self.path_planning.get_desired_heading_steering_between_nodes(
-            self.desired_node, self.current_position_node, self.heading.current_heading
-        )
+        # once you get desired steering angle, verify its within range
 
-        # self.heading.desired_heading = (
-        #     self.path_planning.get_desired_heading_between_nodes(
-        #         self.desired_node, self.current_position_node
-        #     )
-        # )
-
-        # #
-        # self.heading.desired_steering_angle = (
-        #     self.heading.desired_heading - self.heading.current_heading
-        # )
-
-        # zz steering overflow
+        # steering overflow
         if abs(self.heading.desired_steering_angle) > np.pi:
             self.heading.desired_steering_angle -= (
                 np.sign(self.heading.desired_steering_angle) * 2 * np.pi
@@ -244,15 +237,24 @@ class robot_control:
 
         # max steering lock
         if abs(self.heading.desired_steering_angle) > self.steering_lock_angle_rad:
-            self.heading.current_steering_angle = (
+            self.heading.desired_steering_angle = (
                 np.sign(self.heading.desired_steering_angle)
                 * self.steering_lock_angle_rad
             )
+
+    def speed_robot(self, teleop_enable=False):
+        """Determines how fast the robot should be driving, either from path planning or teleop"""
+        if not teleop_enable:
+            self.desired_drive_velocity = 1
         else:
-            self.heading.current_steering_angle = self.heading.desired_steering_angle
-            # self.heading.current_steering_angle = np.mod(
-            #     self.heading.current_steering_angle + np.pi, np.pi
-            # )
+            # if teleop, use arrow keys to control velocity
+            self.read_arrow_keys()  # zz maybe split reading into fwd/back and left/right
+
+        # max speed
+        if abs(self.desired_drive_velocity) > self.max_speed_mps:
+            self.desired_drive_velocity = (
+                np.sign(self.desired_drive_velocity) * self.max_speed_mps
+            )
 
     # TODO determine how to get water level. Sensor, or integral of time and flow rate?
     def get_water_level(self):
@@ -262,7 +264,46 @@ class robot_control:
     # TODO all low level drive commands, when function receives relative coords between two nodes
 
     # TODO get velocity from merge sensor data, primarily use encoders and pose?
-    def get_velocity(self):
+    def execute_velocity(self):
+
+        # zz temp velocity is slow stepping
+
+        if self.desired_drive_velocity > self.current_drive_velocity:
+            self.current_drive_velocity += 0.1
+        elif self.desired_drive_velocity < self.current_drive_velocity:
+            self.current_drive_velocity -= 0.1
+
+        pass
+
+    def execute_drive(self, simulate=False):
+
+        if simulate:
+
+            # zz temp steering angle is slow stepping
+            if (
+                self.heading.desired_steering_angle
+                > self.heading.current_steering_angle
+            ):
+                self.heading.current_steering_angle += 0.4
+            elif (
+                self.heading.desired_steering_angle
+                < self.heading.current_steering_angle
+            ):
+                self.heading.current_steering_angle -= 0.4
+        else:  # real
+            pass
+
+        pass
+
+    # TODO execute steering angle based on desired
+    def execute_steering(self):
+
+        # zz temp steering angle is slow stepping
+        if self.heading.desired_steering_angle > self.heading.current_steering_angle:
+            self.heading.current_steering_angle += 0.4
+        elif self.heading.desired_steering_angle < self.heading.current_steering_angle:
+            self.heading.current_steering_angle -= 0.4
+
         pass
 
     # TODO get encoder values
@@ -282,7 +323,7 @@ class robot_control:
                 # give forward velocity, L R + 50%
                 # self.left_motor.speed = 50
                 # self.right_motor.speed = 50
-                self.drive_velocity = 1
+                self.desired_drive_velocity = 1
 
                 # self.left_motor.set_speed(50)
                 # self.right_motor.set_speed(50)
@@ -292,25 +333,28 @@ class robot_control:
                 # give backward velocity, L R - 50%
                 # self.left_motor.speed = -50
                 # self.right_motor.speed = -50
-                self.drive_velocity = -1
+                self.desired_drive_velocity = -1
             else:
-                self.drive_velocity = 0
+                self.desired_drive_velocity = 0
 
             if left_pressed:
                 print("Left arrow key pressed")
                 # give left velocity, L - 25%, R + 25%
                 # self.left_motor.speed = 25
                 # self.right_motor.speed = 75
-                self.heading.current_steering_angle = +self.steering_lock_angle_rad / 5
+                # self.heading.current_steering_angle = +self.steering_lock_angle_rad / 5
+                self.heading.desired_steering_angle = +self.steering_lock_angle_rad / 5
 
             elif right_pressed:
                 print("Right arrow key pressed")
                 # give right velocity, L + 25%, R - 25%
                 # self.left_motor.speed = 75
                 # self.right_motor.speed = 25
-                self.heading.current_steering_angle = -self.steering_lock_angle_rad / 5
+                # self.heading.current_steering_angle = -self.steering_lock_angle_rad / 5
+                self.heading.desired_steering_angle = -self.steering_lock_angle_rad / 5
             else:
-                self.heading.current_steering_angle = 0
+                # self.heading.current_steering_angle = 0
+                self.heading.desired_steering_angle = 0
 
         except Exception as e:
             print(f"An error occurred: {e}")

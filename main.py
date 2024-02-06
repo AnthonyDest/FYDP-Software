@@ -35,7 +35,7 @@ class Robot:
 
         # make hyperparameter/arg
 
-        if teleop_enable:
+        if teleop_enable_arg:
             current_state = state.manual
         else:
             current_state = state.follow_path
@@ -75,7 +75,7 @@ class Robot:
                     # )
 
                     # steer and drive will act as an if statement for control, part of parent loop of state machine
-                    self.robot_control.drive_path(simulate_feedback=True)
+                    self.robot_control.drive_path(simulate_feedback=simulate_enable_arg)
 
                     # plot robot current position
                     self.robot_control.plot_robot_position()
@@ -93,9 +93,10 @@ class Robot:
                 case state.manual:
                     # near_node = self.robot_control.is_robot_near_desired_node()
 
-                    self.robot_control.read_arrow_keys()
+                    # self.robot_control.read_arrow_keys()
+                    self.robot_control.steer_robot(teleop_enable=teleop_enable_arg)
 
-                    self.robot_control.simulate_feedback(enable=True)
+                    self.robot_control.execute_desired(simulate=simulate_enable_arg)
 
                     self.robot_control.plot_robot_position()
 
@@ -132,12 +133,17 @@ def turn_on_robot():
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="IndexEngine")
     parser.add_argument("--teleop", action="store_true", help="Enable teleop")
+    parser.add_argument("--simulate", action="store_true", help="Enable teleop")
 
 try:
     cli = parser.parse_args()
 
     # Set teleop_enable to True if --teleop is specified
-    teleop_enable = cli.teleop
+    teleop_enable_arg = cli.teleop
+    simulate_enable_arg = cli.simulate
+
+    # zz temp auto enable simulate for testing convenience
+    # simulate_enable_arg = True
 
 except Exception as e:
     print("Error:", str(e))
