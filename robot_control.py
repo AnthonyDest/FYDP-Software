@@ -45,11 +45,13 @@ class robot_control:
 
     def initalize_hardware(self):
         # initalize motors
+        # TODO add steering motor pins
 
-        LEFT_MOTOR_PWM_PIN = 16  # goes to enable
-        LEFT_MOTOR_IN1_PIN = 20
-        LEFT_MOTOR_IN2_PIN = 21
+        LEFT_MOTOR_PWM_PIN = 8  # goes to enable
+        LEFT_MOTOR_IN1_PIN = 7
+        LEFT_MOTOR_IN2_PIN = 12
 
+        # TODO Update right motor pins 
         RIGHT_MOTOR_PWM_PIN = 19  # goes to enable
         RIGHT_MOTOR_IN1_PIN = 23
         RIGHT_MOTOR_IN2_PIN = 24
@@ -157,7 +159,7 @@ class robot_control:
             self.execute_steering()
 
             # zz execute drive commands to motor hardware
-            self.execute_velocity()
+            self.execute_drive(simulate=simulate)
 
             # TODO use velocity x timestep to calculate distance
             distance = self.current_drive_velocity / 2
@@ -199,7 +201,7 @@ class robot_control:
         self.current_position_node.y_coord += y_dist
 
         print(
-            f"To Coord: ({self.desired_node.x_coord}, {self.desired_node.y_coord}), Current Coord: ({self.current_position_node.x_coord:.2f}, {self.current_position_node.y_coord:.2f}), Desired Heading: {self.heading.desired_heading:.2f}, Current heading: {self.heading.current_heading:.2f}, Required Steering Angle: {self.heading.desired_steering_angle:.2f}, Current Steering Angle: {self.heading.current_steering_angle:.2f}"
+            f"To Coord: ({self.desired_node.x_coord}, {self.desired_node.y_coord}), C.Coord: ({self.current_position_node.x_coord:.2f}, {self.current_position_node.y_coord:.2f}), D.Heading: {self.heading.desired_heading:.2f}, C.Heading: {self.heading.current_heading:.2f}, R.Steering Angle: {self.heading.desired_steering_angle:.2f}, C.Steering Angle: {self.heading.current_steering_angle:.2f}, D.Speed: {self.desired_drive_velocity:.2f}, C.Speed: {self.current_drive_velocity:.2f}"
         )
 
     # TODO init PID
@@ -264,34 +266,45 @@ class robot_control:
     # TODO all low level drive commands, when function receives relative coords between two nodes
 
     # TODO get velocity from merge sensor data, primarily use encoders and pose?
-    def execute_velocity(self):
-
-        # zz temp velocity is slow stepping
-
-        if self.desired_drive_velocity > self.current_drive_velocity:
-            self.current_drive_velocity += 0.1
-        elif self.desired_drive_velocity < self.current_drive_velocity:
-            self.current_drive_velocity -= 0.1
-
-        pass
-
     def execute_drive(self, simulate=False):
 
-        if simulate:
+        speed_step = self.max_speed_mps/10
 
-            # zz temp steering angle is slow stepping
-            if (
-                self.heading.desired_steering_angle
-                > self.heading.current_steering_angle
-            ):
-                self.heading.current_steering_angle += 0.4
-            elif (
-                self.heading.desired_steering_angle
-                < self.heading.current_steering_angle
-            ):
-                self.heading.current_steering_angle -= 0.4
-        else:  # real
+        # TODO verify reverse
+        # zz temp velocity is slow stepping
+        if self.desired_drive_velocity > self.current_drive_velocity:
+            self.current_drive_velocity += speed_step
+        elif self.desired_drive_velocity < self.current_drive_velocity:
+            self.current_drive_velocity -= speed_step
+
+
+        # TODO Modify simulate/real so that only simulate has distance = velocity
+        if simulate:
             pass
+
+        else:  # real
+
+            # TODO replace with PID
+            ''' 
+            Velocity ~= PWM input (temp zz)
+            map 0 - max_speed as PWM: 0-100, same for negatives's
+            send that input
+            '''
+
+            # speed to send to motors:
+            pwm_value = (self.current_drive_velocity / self.max_speed_mps)*100
+            
+            # limit
+            pwm_value = min(pwm_value, 100)
+            pwm_value = max(pwm_value,-100)
+
+            print(f"PWM: {pwm_value:.2f}")
+
+            # TODO enable drive motors when connected
+            self.left_motor.set_speed(pwm_value)
+            # self.right_motor.set_speed(pwm_value)
+
+            # self.left_motor.set_speed(100)
 
         pass
 
