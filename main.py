@@ -49,11 +49,14 @@ class Robot:
             # encoder, steering velocity, motor velocity, IMU positioning...
             self.robot_control.read_in_all_sensor_data()
 
-            match current_state:
-                case state.initialization:
-                    pass
+            # match current_state:
+            #     case state.initialization:
+            #         pass
+            if current_state == state.initialization:
+                pass
 
-                case state.follow_path:
+                # case state.follow_path:
+            elif current_state == state.follow_path:
                     # iterate through each node in list
 
                     # calculate relative change between current status node and desired node
@@ -81,16 +84,22 @@ class Robot:
                     self.robot_control.plot_robot_position()
 
                     # if node.type = travel, switch to travel_to_refill
-
                     pass
-                case state.wait_for_refill:
+                #     pass
+                # case state.wait_for_refill:
+                #     pass
+                # case state.travel_to_refill:
+                #     pass
+                # case state.travel_to_path:
+                #     pass
+            elif current_state == state.wait_for_refill:
                     pass
-                case state.travel_to_refill:
-                    pass
-                case state.travel_to_path:
-                    pass
-
-                case state.manual:
+            elif current_state == state.travel_to_refill:
+                pass
+            elif current_state == state.travel_to_path:
+                pass
+                # case state.manual:
+            elif current_state == state.manual:
                     # near_node = self.robot_control.is_robot_near_desired_node()
 
                     # self.robot_control.read_arrow_keys()
@@ -102,7 +111,8 @@ class Robot:
 
                     pass
 
-                case state.end:
+                # case state.end:
+            elif current_state == state.end:
                     print("Travel done")
 
                     # wait for user to finish analyzing plots
@@ -113,14 +123,16 @@ class Robot:
                     # plt.ioff
                     return None
 
-                case _:
-                    pass
+                # case _:
+                #     pass
+            else:
+                pass
 
             # print(f"Current State: {current_state}")
             zzEscape += 1
-            # if zzEscape > 2000:
-            #     print("zzEscape")
-            #     return None
+            if zzEscape > 2000:
+                print("zzEscape")
+                return None
 
 
 # accommodate robot turning on, how to enter script, necessary hardware... (https://raspberrypi-guide.github.io/programming/run-script-on-boot)
