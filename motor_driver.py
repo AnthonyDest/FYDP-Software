@@ -47,6 +47,16 @@ class Motor:
 
     def set_speed(self, duty_cycle):
         # limit duty cycle
+
+        # set pins based on duty cycle
+        # "Forward"
+        if duty_cycle > 0:
+            self.spin_clockwise()
+        elif duty_cycle < 0:
+            self.spin_counter_clockwise()
+
+        duty_cycle = abs(duty_cycle)
+
         if duty_cycle < 0:
             duty_cycle = 0
         elif duty_cycle > 100:

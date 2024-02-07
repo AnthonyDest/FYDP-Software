@@ -23,6 +23,7 @@ class robot_control:
         self.time_at_last_update = 0
         self.timer = helper.timer()
         self.heading = helper.heading()
+        self.steering_motor = None
         self.left_motor = None
         self.right_motor = None
 
@@ -46,15 +47,25 @@ class robot_control:
     def initalize_hardware(self):
         # initalize motors
         # TODO add steering motor pins
+        STEERING_MOTOR_PWM_PIN = 8  # goes to enable
+        STEERING_MOTOR_IN1_PIN = 7
+        STEERING_MOTOR_IN2_PIN = 12
 
-        LEFT_MOTOR_PWM_PIN = 8  # goes to enable
-        LEFT_MOTOR_IN1_PIN = 7
-        LEFT_MOTOR_IN2_PIN = 12
+
+        LEFT_MOTOR_PWM_PIN = 18  # goes to enable
+        LEFT_MOTOR_IN1_PIN = 17
+        LEFT_MOTOR_IN2_PIN = 19
 
         # TODO Update right motor pins 
         RIGHT_MOTOR_PWM_PIN = 19  # goes to enable
         RIGHT_MOTOR_IN1_PIN = 23
         RIGHT_MOTOR_IN2_PIN = 24
+
+        self.steering_motor = motor_driver.Motor(
+            pwm_pin=STEERING_MOTOR_PWM_PIN,
+            in_1_pin=STEERING_MOTOR_IN1_PIN,
+            in_2_pin=STEERING_MOTOR_IN2_PIN,
+        )
 
         self.left_motor = motor_driver.Motor(
             pwm_pin=LEFT_MOTOR_PWM_PIN,
@@ -68,6 +79,7 @@ class robot_control:
             in_2_pin=RIGHT_MOTOR_IN2_PIN,
         )
 
+        self.steering_motor.speed = 0
         self.left_motor.speed = 0
         self.right_motor.speed = 0
 
@@ -309,15 +321,69 @@ class robot_control:
         pass
 
     # TODO execute steering angle based on desired
-    def execute_steering(self):
+    def execute_steering(self, simulate=False):
 
-        # zz temp steering angle is slow stepping
-        if self.heading.desired_steering_angle > self.heading.current_steering_angle:
-            self.heading.current_steering_angle += 0.4
-        elif self.heading.desired_steering_angle < self.heading.current_steering_angle:
-            self.heading.current_steering_angle -= 0.4
+        
+
+        # TODO Modify simulate/real so that only simulate has distance = velocity
+        if simulate:
+            pass
+
+        else:  # real
+
+            # TODO replace with PID (No PID, very agressive turning)
+            ''' 
+            Steering angle input
+
+            Simulate steering encoder:
+
+            current_heading += steering_ROC * time (assumed to be 1 for now)
+            '''
+            steer_step = self.steering_lock_angle_rad/3
+            # zz temp 20% tolerance
+            # TODO zz PID internally in IF statement here, currently just 60 each way
+            if self.heading.desired_steering_angle > self.heading.current_steering_angle :
+                self.heading.current_steering_angle += steer_step
+                steering_roc = 60
+                self.steering_motor.set_speed(steering_roc)
+                
+            elif self.heading.desired_steering_angle < self.heading.current_steering_angle:
+                
+                self.heading.current_steering_angle -= steer_step
+                # TODO handle flipping directions
+                steering_roc = -60
+                # steering_roc = 0
+                self.steering_motor.set_speed(steering_roc)
+            
+            else:
+                steering_roc = 0
+                self.steering_motor.set_speed(steering_roc)
+            
+
+
+
+
+            # speed to send to motors:
+            pwm_value = (self.current_drive_velocity / self.max_speed_mps)*100
+            
+            # limit
+            pwm_value = min(pwm_value, 100)
+            pwm_value = max(pwm_value,-100)
+
+            print(f"PWM: {pwm_value:.2f}")
+
+            # TODO enable drive motors when connected
+            self.left_motor.set_speed(pwm_value)
+            # self.right_motor.set_speed(pwm_value)
+
+            # self.left_motor.set_speed(100)
 
         pass
+
+
+
+
+
 
     # TODO get encoder values
     def get_encoder_values(self):
