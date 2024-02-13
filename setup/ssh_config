@@ -1,0 +1,12 @@
+Host raspberrypi.local
+  HostName raspberrypi.local
+  User fydp
+  ForwardX11 yes
+
+Host 10.20.113.116
+  HostName 10.20.113.116
+  User fydp
+
+Host 192.168.137.94
+  HostName 192.168.137.94
+  User fydp
