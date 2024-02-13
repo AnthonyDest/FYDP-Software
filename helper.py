@@ -1,7 +1,5 @@
 import math
 import time
-import matplotlib.pyplot as plt
-import numpy as np
 
 
 # contains information relating to robot current or desired kinematic state
@@ -14,6 +12,8 @@ class Node:
         self.velocity = velocity
         self.step_number = 0
         self.water_flow_rate = 0
+        self.lap_number = lap_number
+        self.x_y_pair = []
 
         self.x_range = self.state_tolerance_range(self.x_coord)
         self.y_range = self.state_tolerance_range(self.y_coord)
@@ -21,9 +21,10 @@ class Node:
         # zz consider adding a time stamp
         # zz consider other properties: flowrate, "state" (regular flood, refilling, repositioning...), etc
 
-    def node_print(self):  # print everything
+    # TODO Update print (needs heading info)
+    def node_print(self):  # print everything 
         print(
-            f"Node: x_coord={self.x_coord}, y_coord={self.y_coord}, heading={self.heading}, velocity={self.velocity}, lap_number={self.lap_number}"
+            f"Node: x_coord={self.x_coord}, y_coord={self.y_coord}, velocity={self.velocity}, lap_number={self.lap_number}"
         )
 
     # TODO accept float tolerance, hyperparameter

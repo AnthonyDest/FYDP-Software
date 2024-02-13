@@ -1,8 +1,6 @@
 import math
-import numpy as np
 import helper
 import matplotlib.pyplot as plt
-import copy
 
 
 class path_planning:
@@ -17,6 +15,7 @@ class path_planning:
         self.normal_velocity_turning_mps = 1
         # self.path = []
         self.path = helper.Path()
+        self.rink_corners = None
 
     # zz perhaps input rink dimensions here
     # zz how to deal with refilling water: does generate path determine at init or insert a go to the end of rink and back when detecting water full
