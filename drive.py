@@ -1,5 +1,7 @@
-from motor_driver import left_motor
+from motor_driver import Motor
 import time
+
+left_motor = Motor(8, 7, 12)
 
 left_motor.set_speed(100)
 timeValue = 2
@@ -11,7 +13,7 @@ try:
         print("20")
         left_motor.set_speed(20)
         time.sleep(timeValue)
-        
+
         print("40")
         left_motor.set_speed(40)
         time.sleep(timeValue)
@@ -29,9 +31,7 @@ try:
         time.sleep(timeValue)
 
 
-
 except KeyboardInterrupt:
     left_motor.close()
 
 print("END")
-
