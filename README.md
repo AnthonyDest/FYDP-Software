@@ -14,16 +14,15 @@ Welcome to SnoMo! SnoMo is an innovative autonomous ice-resurfacing robot develo
 3. [Git](https://git-scm.com/downloads)
 4. [RealVNC](https://www.realvnc.com/en/connect/download/viewer/)
 
-
-## Configure Visual Studio Code
-Import fydp_base profile:
-https://vscode.dev/profile/github/ee790e3fa4f2fad9bd25d6a99199eab6
-
 ## Clone the Repository
 
 ```bash
 git clone https://github.com/AnthonyDest/FYDP-Software.git
 ```
+
+## Configure Visual Studio Code
+Import fydp_base profile:
+https://vscode.dev/profile/github/ee790e3fa4f2fad9bd25d6a99199eab6
 
 ## Create and Activate Venv
 ```
@@ -42,7 +41,6 @@ pip install -r requirements.txt
 1. Connect via ethernet to Pi
 2. Set a [Static IP](https://www.trendnet.com/press/resource-library/how-to-set-static-ip-address) on connected port
 
-
 ## Setup Remote SSH Connection VS Code
 Following https://code.visualstudio.com/docs/remote/ssh  
 Import ssh_config to remote explorer settings  
@@ -54,7 +52,3 @@ Local Connection:
    1. VNC Server: `raspberrypi.local`
    2. Name: `Pi_Local`
    
-
-
-
-
