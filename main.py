@@ -17,7 +17,7 @@ class Robot:
     # zz replace passing in objects with a parent class that has all the objects
     def __init__(self):
         self.robot_control = robot_control.robot_control()
-        self.robot_control.initialize_modules()
+        self.robot_control.initialize_modules(simulate_enable_arg)
 
     def clear_rink(self):
         pass
@@ -160,6 +160,7 @@ try:
     simulate_enable_arg = cli.simulate
 
     # zz temp auto enable simulate for testing convenience
+    # TODO perhaps if gpio is not available, auto implement then auto enable simulate
     # simulate_enable_arg = True
 
 except Exception as e:
