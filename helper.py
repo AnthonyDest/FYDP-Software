@@ -125,3 +125,15 @@ class heading:
         #     f"To Coord: ({self.desired_node.x_coord}, {self.desired_node.y_coord}), Current Coord: ({self.current_position_node.x_coord}, {self.current_position_node.y_coord}), Desired Heading: {self.desired_heading}, Current heading: {self.current_position_node.heading}, Required Steering Angle: {self.required_steering_angle}, Current Steering Angle: {self.steering_angle}"
         # )
         pass
+
+
+def check_simulate(func):
+    def wrapper(self, *args, **kwargs):
+        # print(f"Simulate: {self.simulate}")
+        if self.simulate:
+            return False
+        else:
+            # Call the original function
+            return func(self, *args, **kwargs)
+
+    return wrapper

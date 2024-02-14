@@ -1,3 +1,5 @@
+from helper import check_simulate
+
 try:
     import RPi.GPIO as gpio
 except ImportError:
@@ -20,11 +22,13 @@ LEFT_MOTOR_IN1_PIN = 20
 LEFT_MOTOR_IN2_PIN = 21
 
 
+# TODO add name parameter and property to all object classes (to identify L/R/Steering Motor)
 class Motor:
-    def __init__(self, pwm_pin, in_1_pin, in_2_pin):
+    def __init__(self, pwm_pin, in_1_pin, in_2_pin, simulate=False):
         self.pwm_pin = pwm_pin
         self.in_1 = in_1_pin
         self.in_2 = in_2_pin
+        self.simulate = simulate
 
         self.speed = 0
         if gpio is None:
@@ -45,6 +49,7 @@ class Motor:
         self.pwm = gpio.PWM(self.pwm_pin, 125)
         self.pwm.start(0)
 
+    @check_simulate
     def set_speed(self, duty_cycle):
         # limit duty cycle
 
@@ -65,6 +70,7 @@ class Motor:
         # Set the duty cycle of the PWM signal
         self.pwm.ChangeDutyCycle(duty_cycle)
 
+    @check_simulate
     def spin_clockwise(self):
         # zz tune ensure stopped/direction command
         # self.stop()
@@ -72,6 +78,7 @@ class Motor:
         gpio.output(self.in_1, gpio.HIGH)
         gpio.output(self.in_2, gpio.LOW)
 
+    @check_simulate
     def spin_counter_clockwise(self):
         # zz tune ensure stopped/direction command
         # self.stop()
@@ -79,12 +86,14 @@ class Motor:
         gpio.output(self.in_1, gpio.LOW)
         gpio.output(self.in_2, gpio.HIGH)
 
+    @check_simulate
     def stop(self):
         # Stop the motor
         self.set_speed(0)
 
     # close all inputs
     # might need a 10k ohm resistor for pwm
+    @check_simulate
     def close(self):
         self.pwm.stop()
         gpio.cleanup()
