@@ -8,7 +8,7 @@ except ImportError:
     print("RPi.gpio not available. gpio functionality will be disabled.")
 
 
-class encoder_driver:
+class encoder:
 
     # TODO incorporate max steps and steps/rotation into parameters for steering vs drive
     def __init__(self, pin_A, pin_B, simulate=False):
@@ -36,14 +36,20 @@ class encoder_driver:
         # zz need either steps/angle or angle/rotation to calculate angle (do math)
 
     # for steering, when it hits the limit switch, it should home
+    # zz add a tolerance? eg, instead of set to 0, set to -TOL. And max is actually max - TOL
+    # this way if you always operate between 0 and max, you will have a slight gap
+    # also needs a, if ever hit limit switch, rehome?
     @check_simulate
     def home_left(self):
         self.encoder.steps = 0
+        print(f"Left Encoder Homed, Steps: {self.encoder.steps}")
 
     @check_simulate
     def home_right(self):
         self.max_steering_steps = self.encoder.steps
+        print(f"Right Encoder Homed, Steps: {self.encoder.steps}")
 
     @check_simulate
     def get_steps(self):
+        print(f"Encoder Steps: {self.encoder.steps}")
         return self.encoder.steps

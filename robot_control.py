@@ -2,6 +2,7 @@ import math
 import keyboard
 import numpy as np
 from simple_pid import PID
+import encoder
 import helper
 import image_processing
 import path_planning
@@ -86,19 +87,41 @@ class robot_control:
             pwm_pin=LEFT_MOTOR_PWM_PIN,
             in_1_pin=LEFT_MOTOR_IN1_PIN,
             in_2_pin=LEFT_MOTOR_IN2_PIN,
-            simulate=simulate
+            simulate=simulate,
         )
 
         self.right_motor = motor_driver.Motor(
             pwm_pin=RIGHT_MOTOR_PWM_PIN,
             in_1_pin=RIGHT_MOTOR_IN1_PIN,
             in_2_pin=RIGHT_MOTOR_IN2_PIN,
-            simulate=simulate
+            simulate=simulate,
         )
 
         self.steering_motor.speed = 0
         self.left_motor.speed = 0
         self.right_motor.speed = 0
+
+        # zz update
+        STEERING_MOTOR_ENCODER_PIN_A = 25
+        STEERING_MOTOR_ENCODER_PIN_B = 26
+        LEFT_MOTOR_ENCODER_PIN_A = 5
+        LEFT_MOTOR_ENCODER_PIN_B = 6
+        RIGHT_MOTOR_ENCODER_PIN_A = 13
+        RIGHT_MOTOR_ENCODER_PIN_B = 16
+
+        self.steering_motor_encoder = encoder.encoder(
+            STEERING_MOTOR_ENCODER_PIN_A,
+            STEERING_MOTOR_ENCODER_PIN_B,
+            simulate=simulate,
+        )
+
+        self.left_motor_encoder = encoder.encoder(
+            LEFT_MOTOR_ENCODER_PIN_A, LEFT_MOTOR_ENCODER_PIN_B, simulate=simulate
+        )
+
+        self.right_motor_encoder = encoder.encoder(
+            RIGHT_MOTOR_ENCODER_PIN_A, RIGHT_MOTOR_ENCODER_PIN_B, simulate=simulate
+        )
 
         # check hardware status
         hardware_OK = motor_driver.check_hardware_OK()
@@ -294,9 +317,54 @@ class robot_control:
         self.current_water_level = 0
         return self.current_water_level
 
+    # TODO improve sequence/set_speed fxn if desired = current
+    # zz modify the speeds to bump, make a bump function?
+    def home_steering(self):
+
+        # if steering is at limit, bump it right
+        while self.left_limit_switch.is_pressed():
+            self.steering_motor.set_speed(5)
+
+        # stop motor
+        self.steering_motor.set_speed(0)
+
+        # zz should wait a few second, until we have better PID/motor inertia handling for motor firmware
+        self.timer.wait_seconds(2)
+
+        self.steering_motor.set_speed(-5)
+
+        # bump steering left till limit switch is pressed
+        while not self.left_limit_switch():
+            # wait...
+            pass
+
+        # stop motor
+        self.steering_motor.set_speed(0)
+
+        # set steering encoder left home here
+        self.steering_motor_encoder.home_left()
+
+        # zz should wait a few second, until we have better PID/motor inertia handling for motor firmware
+        self.timer.wait_seconds(2)
+
+        self.steering_motor.set_speed(5)
+
+        # bump steering right till limit switch is pressed
+        while not self.right_limit_switch():
+            # wait...
+            pass
+
+        self.steering_motor.set_speed(0)
+
+        # set steering encoder right home here
+        self.steering_motor_encoder.home_right()
+
+        # zz should wait a few second, then center the steering motor
+
     # TODO all low level drive commands, when function receives relative coords between two nodes
 
     # TODO get velocity from merge sensor data, primarily use encoders and pose?
+    # zz remove simulate in param
     def execute_drive(self, simulate=False):
 
         speed_step = self.max_speed_mps / 10

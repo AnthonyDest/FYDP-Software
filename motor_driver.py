@@ -51,6 +51,7 @@ class Motor:
 
     @check_simulate
     def set_speed(self, duty_cycle):
+        "CW is +, CCW is -, 0 is stop, 100 is max speed, -100 is max reverse speed, 50 is half speed, etc."
         # limit duty cycle
 
         # set pins based on duty cycle
