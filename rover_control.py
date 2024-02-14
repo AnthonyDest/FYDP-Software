@@ -1,3 +1,4 @@
+# Depreciated
 from motor_driver import left_motor, right_motor, steering_motor
 
 class Rover:
