@@ -1,9 +1,7 @@
 import sys
-import image_processing
-import path_planning
+import argparse
 import robot_control
 import states
-import argparse
 
 # Code is split into 4 modules:
 # image_processing.py   - used for machine vision and localization
@@ -58,71 +56,69 @@ class Robot:
 
                     # case state.follow_path:
                 elif current_state == state.follow_path:
-                        # iterate through each node in list
+                    # iterate through each node in list
 
-                        # calculate relative change between current status node and desired node
-                        # call steer and drive parameters to move to next node
+                    # calculate relative change between current status node and desired node
+                    # call steer and drive parameters to move to next node
 
-                        # check if at next node +- tolerance, if so update next node
-                        near_node = self.robot_control.is_robot_near_desired_node()
-                        if near_node:
-                            more_stops_after_next = self.robot_control.update_next_node()
+                    # check if at next node +- tolerance, if so update next node
+                    near_node = self.robot_control.is_robot_near_desired_node()
+                    if near_node:
+                        more_stops_after_next = self.robot_control.update_next_node()
 
-                            # if end case, stop
-                            if not more_stops_after_next:
-                                current_state = state.end
-                                continue
+                        # if end case, stop
+                        if not more_stops_after_next:
+                            current_state = state.end
+                            continue
 
-                        # # zz manual moving for simulation
-                        # self.robot_control.current_position_node = (
-                        #     self.robot_control.desired_node
-                        # )
+                    # # zz manual moving for simulation
+                    # self.robot_control.current_position_node = (
+                    #     self.robot_control.desired_node
+                    # )
 
-                        # steer and drive will act as an if statement for control, part of parent loop of state machine
-                        self.robot_control.drive_path(simulate_feedback=simulate_enable_arg)
+                    # steer and drive will act as an if statement for control, part of parent loop of state machine
+                    self.robot_control.drive_path(simulate_feedback=simulate_enable_arg)
 
-                        # plot robot current position
-                        self.robot_control.plot_robot_position()
+                    # plot robot current position
+                    self.robot_control.plot_robot_position()
 
-                        # if node.type = travel, switch to travel_to_refill
-                        pass
-                    #     pass
-                    # case state.wait_for_refill:
-                    #     pass
-                    # case state.travel_to_refill:
-                    #     pass
-                    # case state.travel_to_path:
-                    #     pass
+                    # if node.type = travel, switch to travel_to_refill
+                #     pass
+                # case state.wait_for_refill:
+                #     pass
+                # case state.travel_to_refill:
+                #     pass
+                # case state.travel_to_path:
+                #     pass
                 elif current_state == state.wait_for_refill:
-                        pass
+                    pass
                 elif current_state == state.travel_to_refill:
                     pass
                 elif current_state == state.travel_to_path:
                     pass
                     # case state.manual:
                 elif current_state == state.manual:
-                        # near_node = self.robot_control.is_robot_near_desired_node()
+                    # near_node = self.robot_control.is_robot_near_desired_node()
 
-                        # self.robot_control.read_arrow_keys()
-                        self.robot_control.steer_robot(teleop_enable=teleop_enable_arg)
+                    # self.robot_control.read_arrow_keys()
+                    self.robot_control.steer_robot(teleop_enable=teleop_enable_arg)
 
-                        self.robot_control.execute_desired(simulate=simulate_enable_arg)
+                    self.robot_control.execute_desired(simulate=simulate_enable_arg)
 
-                        self.robot_control.plot_robot_position()
+                    self.robot_control.plot_robot_position()
 
-                        pass
 
                     # case state.end:
                 elif current_state == state.end:
-                        print("Travel done")
+                    print("Travel done")
 
-                        # wait for user to finish analyzing plots
-                        self.robot_control.path_planning.stop_interactive_plot()
+                    # wait for user to finish analyzing plots
+                    self.robot_control.path_planning.stop_interactive_plot()
 
-                        self.robot_control.plot_robot_position()
+                    self.robot_control.plot_robot_position()
 
-                        # plt.ioff
-                        return None
+                    # plt.ioff
+                    return None
 
                     # case _:
                     #     pass
