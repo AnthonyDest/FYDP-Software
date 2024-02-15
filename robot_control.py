@@ -123,6 +123,11 @@ class robot_control:
             RIGHT_MOTOR_ENCODER_PIN_A, RIGHT_MOTOR_ENCODER_PIN_B, simulate=simulate
         )
 
+        # TODO get Kp, Ki, Kd values from tuning
+        self._steering_pid_controller = PID(
+            Kp=1, Ki=0, Kd=0, setpoint=0, output_limits=(-100, 100)
+        )
+
         # check hardware status
         hardware_OK = motor_driver.check_hardware_OK()
         if not hardware_OK:
@@ -428,8 +433,9 @@ class robot_control:
         # TODO zz PID internally in IF statement here, currently just 60 each way
         if self.heading.desired_steering_angle > self.heading.current_steering_angle:
             self.heading.current_steering_angle += steer_step
-            steering_roc = 60
-            self.steering_motor.set_speed(steering_roc)
+            # steering_roc = 60
+            # self.steering_motor.set_speed(steering_roc)
+            self.steer_pwm()
 
         elif self.heading.desired_steering_angle < self.heading.current_steering_angle:
 
@@ -437,11 +443,13 @@ class robot_control:
             # TODO handle flipping directions
             steering_roc = -60
             # steering_roc = 0
-            self.steering_motor.set_speed(steering_roc)
+            # self.steering_motor.set_speed(steering_roc)
+            self.steer_pwm()
 
         else:
             steering_roc = 0
-            self.steering_motor.set_speed(steering_roc)
+            # self.steering_motor.set_speed(steering_roc)
+            self.steer_pwm()
 
         # TODO have better steering corrections
         # Preventing Oversteer:
@@ -463,12 +471,39 @@ class robot_control:
         # print(f"PWM: {pwm_value:.2f}")
 
         # TODO enable drive motors when connected
+
+        # self.drive_pwm()
+
         # self.left_motor.set_speed(pwm_value)
         # self.right_motor.set_speed(pwm_value)
 
         # self.left_motor.set_speed(100)
 
     # pass
+    def steer_pwm(self, desired=None, current=None):
+
+        # Use the provided values or use defaults if they are None
+        desired = (
+            desired if desired is not None else self.heading.desired_steering_angle
+        )
+        current = (
+            current if current is not None else self.heading.current_steering_angle
+        )
+
+        # if desired is not None or current is not None:
+
+        #     steering_input = self._steering_pid_controller(
+        #         self.heading.current_steering_angle, self.heading.desired_steering_angle
+        #     )
+        # else:
+        #     steering_input = self._steering_pid_controller(current, desired)
+        steering_input = self._steering_pid_controller(current, desired)
+
+        self.steering_motor.set_speed(steering_input)
+
+    # zz check desired velocity
+    def drive_pwm(self):
+        pass
 
     # TODO get encoder values
     def get_encoder_values(self):
