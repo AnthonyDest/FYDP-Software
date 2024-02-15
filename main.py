@@ -24,6 +24,7 @@ class Robot:
     def state_machine(self):
         try:
             self.robot_control.path_planning.create_rink_border()
+            # TODO need to figure out current position on map if not at start node, and travel to start node
             self.robot_control.path_planning.generate_path()
             # self.robot_control.path_planning.plot_rink_border()
             # self.robot_control.path_planning.plot_path(show_rink=True)
@@ -37,7 +38,7 @@ class Robot:
             if teleop_enable_arg:
                 current_state = state.manual
             else:
-                current_state = state.follow_path
+                current_state = state.initialization
 
             self.robot_control.reset_timer()
 
@@ -52,7 +53,8 @@ class Robot:
                 #     case state.initialization:
                 #         pass
                 if current_state == state.initialization:
-                    pass
+                    self.robot_control.home_steering()
+                    current_state = state.follow_path
 
                     # case state.follow_path:
                 elif current_state == state.follow_path:
@@ -106,7 +108,6 @@ class Robot:
                     self.robot_control.execute_desired(simulate=simulate_enable_arg)
 
                     self.robot_control.plot_robot_position()
-
 
                     # case state.end:
                 elif current_state == state.end:

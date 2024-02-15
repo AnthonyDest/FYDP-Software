@@ -24,6 +24,7 @@ class limit_switch:
         if gpio is None:
             print("GPIO Disabled")
             return None
+        self.init_pins()
 
     @check_simulate
     def init_pins(self):

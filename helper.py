@@ -22,7 +22,7 @@ class Node:
         # zz consider other properties: flowrate, "state" (regular flood, refilling, repositioning...), etc
 
     # TODO Update print (needs heading info)
-    def node_print(self):  # print everything 
+    def node_print(self):  # print everything
         print(
             f"Node: x_coord={self.x_coord}, y_coord={self.y_coord}, velocity={self.velocity}, lap_number={self.lap_number}"
         )
@@ -90,6 +90,11 @@ class timer:
         self.start_time = self.get_current_time()
 
         return self.delta_time
+
+    def wait_seconds(self, seconds):
+        self.start_time = self.get_current_time()
+        while self.get_delta_time() < seconds:
+            pass
 
 
 class heading:

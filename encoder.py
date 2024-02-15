@@ -1,92 +1,55 @@
-import RPi.GPIO as GPIO
-from time import sleep
+from helper import check_simulate
+from gpiozero import RotaryEncoder
 
-counter = 10
-
-Enc_A = 23  
-Enc_B = 24
-
-GPIO.setmode(GPIO.BCM)
-GPIO.setup(Enc_A, GPIO.IN)
-GPIO.setup(Enc_B, GPIO.IN)
+try:
+    import RPi.GPIO as gpio
+except ImportError:
+    gpio = None
+    print("RPi.gpio not available. gpio functionality will be disabled.")
 
 
-def init():
-    print ("Rotary Encoder Test Program")
-    GPIO.setwarnings(True)
-    GPIO.setmode(GPIO.BCM)
-    GPIO.setup(Enc_A, GPIO.IN)
-    GPIO.setup(Enc_B, GPIO.IN)
-    GPIO.add_event_detect(Enc_A, GPIO.RISING, callback=rotation_decode, bouncetime=10)
-    return
+class encoder:
 
+    # TODO incorporate max steps and steps/rotation into parameters for steering vs drive
+    def __init__(self, pin_A, pin_B, simulate=False):
+        self.pin_A = pin_A
+        self.pin_B = pin_B
 
-def rotation_decode(Enc_A):
-    global counter
-    sleep(0.002)
-    Switch_A = GPIO.input(Enc_A)
-    Switch_B = GPIO.input(Enc_B)
+        self.simulate = simulate
 
-    if (Switch_A == 1) and (Switch_B == 0):
-        counter += 1
-        print ("direction -> ", counter)
-        while Switch_B == 0:
-            Switch_B = GPIO.input(Enc_B)
-        while Switch_B == 1:
-            Switch_B = GPIO.input(Enc_B)
-        return
+        if gpio is None:
+            print("GPIO Disabled")
+            return None
+        self.init_pins()
 
-    elif (Switch_A == 1) and (Switch_B == 1):
-        counter -= 1
-        print ("direction <- ", counter)
-        while Switch_A == 1:
-            Switch_A = GPIO.input(Enc_A)
-        return
-    else:
-        return
+    @check_simulate
+    def init_pins(self):
+        # TODO update max steps
+        # zz max steps in this RotaryEncoder are for Value and when the encoder is active, it doesnt care that much about # of rotations (we need to do ourselves)
+        # zz ^ it may be useful for steering, but a later problem
+        # zz documentation shows that when max_steps = 0 has: CW +=1, CCW -=1
 
-def main():
-    try:
-        init()
-        while True :
-            sleep(1)
+        self.encoder = RotaryEncoder(self.pin_A, self.pin_B, max_steps=0)
 
-    except KeyboardInterrupt:
-        GPIO.cleanup()
+        # TODO Update steps per rotation
+        self.steps_per_rotation = 96
+        # zz need either steps/angle or angle/rotation to calculate angle (do math)
 
-if __name__ == '__main__':
-    main()
+    # for steering, when it hits the limit switch, it should home
+    # zz add a tolerance? eg, instead of set to 0, set to -TOL. And max is actually max - TOL
+    # this way if you always operate between 0 and max, you will have a slight gap
+    # also needs a, if ever hit limit switch, rehome?
+    @check_simulate
+    def home_left(self):
+        self.encoder.steps = 0
+        print(f"Left Encoder Homed, Steps: {self.encoder.steps}")
 
-# from gpiozero import RotaryEncoder
+    @check_simulate
+    def home_right(self):
+        self.max_steering_steps = self.encoder.steps
+        print(f"Right Encoder Homed, Steps: {self.encoder.steps}")
 
-# # Define constants for the GPIO pins
-# LEFT_ENCODER_A_PIN = 23
-# LEFT_ENCODER_B_PIN = 24
-# # RIGHT_ENCODER_A_PIN = 22
-# # RIGHT_ENCODER_B_PIN = 23
-
-# # Initialize the left and right encoders
-# left_encoder = RotaryEncoder(LEFT_ENCODER_A_PIN, LEFT_ENCODER_B_PIN, max)
-# # right_encoder = RotaryEncoder(RIGHT_ENCODER_A_PIN, RIGHT_ENCODER_B_PIN)
-# # right_encoder = RotaryEncoder(RIGHT_ENCODER_A_PIN, RIGHT_ENCODER_B_PIN, wrap=True, max_steps=180)
-# # max steps
-
-
-# try:
-#     while True:
-#         # Read values from the left and right encoders
-#         # left_value = left_encoder.value
-#         # right_value = right_encoder.value
-
-#         left_value = left_encoder.steps
-
-#         print(f"Left Encoder Value: {left_value}")
-#         # print(f"Right Encoder Value: {right_value}")
-
-# except KeyboardInterrupt:
-#     # Close the left and right encoders on Ctrl+C
-#     left_encoder.close()
-#     # right_encoder.close()
-
-
-
+    @check_simulate
+    def get_steps(self):
+        print(f"Encoder Steps: {self.encoder.steps}")
+        return self.encoder.steps
