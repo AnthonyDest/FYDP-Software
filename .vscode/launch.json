@@ -8,9 +8,7 @@
             "program": "${workspaceFolder}/main.py",
             "console": "integratedTerminal",
             "justMyCode": true,
-            "args": [
-                "--simulate"
-            ]
+            "args": []
         },
         {
             "name": "Simulate",

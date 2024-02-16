@@ -54,18 +54,18 @@ class robot_control:
         LEFT_LIMIT_SWITCH_PIN = 22
         RIGHT_LIMIT_SWITCH_PIN = 27
 
-        self.left_limit_switch = limit_switch.limit_switch(
-            LEFT_LIMIT_SWITCH_PIN, simulate=simulate
-        )
-        self.right_limit_switch = limit_switch.limit_switch(
-            RIGHT_LIMIT_SWITCH_PIN, simulate=simulate
-        )
+        # self.left_limit_switch = limit_switch.limit_switch(
+        #     LEFT_LIMIT_SWITCH_PIN, simulate=simulate
+        # )
+        # self.right_limit_switch = limit_switch.limit_switch(
+        #     RIGHT_LIMIT_SWITCH_PIN, simulate=simulate
+        # )
 
         # initalize motors
         # TODO add steering motor pins
-        STEERING_MOTOR_PWM_PIN = 8  # goes to enable
-        STEERING_MOTOR_IN1_PIN = 7
-        STEERING_MOTOR_IN2_PIN = 12
+        STEERING_MOTOR_PWM_PIN = 21  # goes to enable
+        STEERING_MOTOR_IN1_PIN = 16
+        STEERING_MOTOR_IN2_PIN = 20
 
         LEFT_MOTOR_PWM_PIN = 18  # goes to enable
         LEFT_MOTOR_IN1_PIN = 17
@@ -83,31 +83,31 @@ class robot_control:
             simulate=simulate,
         )
 
-        self.left_motor = motor_driver.Motor(
-            pwm_pin=LEFT_MOTOR_PWM_PIN,
-            in_1_pin=LEFT_MOTOR_IN1_PIN,
-            in_2_pin=LEFT_MOTOR_IN2_PIN,
-            simulate=simulate,
-        )
+        # self.left_motor = motor_driver.Motor(
+        #     pwm_pin=LEFT_MOTOR_PWM_PIN,
+        #     in_1_pin=LEFT_MOTOR_IN1_PIN,
+        #     in_2_pin=LEFT_MOTOR_IN2_PIN,
+        #     simulate=simulate,
+        # )
 
-        self.right_motor = motor_driver.Motor(
-            pwm_pin=RIGHT_MOTOR_PWM_PIN,
-            in_1_pin=RIGHT_MOTOR_IN1_PIN,
-            in_2_pin=RIGHT_MOTOR_IN2_PIN,
-            simulate=simulate,
-        )
+        # self.right_motor = motor_driver.Motor(
+        #     pwm_pin=RIGHT_MOTOR_PWM_PIN,
+        #     in_1_pin=RIGHT_MOTOR_IN1_PIN,
+        #     in_2_pin=RIGHT_MOTOR_IN2_PIN,
+        #     simulate=simulate,
+        # )
 
-        self.steering_motor.speed = 0
-        self.left_motor.speed = 0
-        self.right_motor.speed = 0
+        # self.steering_motor.speed = 0
+        # self.left_motor.speed = 0
+        # self.right_motor.speed = 0
 
         # zz update
-        STEERING_MOTOR_ENCODER_PIN_A = 25
-        STEERING_MOTOR_ENCODER_PIN_B = 26
+        STEERING_MOTOR_ENCODER_PIN_A = 10
+        STEERING_MOTOR_ENCODER_PIN_B = 9
         LEFT_MOTOR_ENCODER_PIN_A = 5
-        LEFT_MOTOR_ENCODER_PIN_B = 6
-        RIGHT_MOTOR_ENCODER_PIN_A = 13
-        RIGHT_MOTOR_ENCODER_PIN_B = 16
+        LEFT_MOTOR_ENCODER_PIN_B = 5
+        RIGHT_MOTOR_ENCODER_PIN_A = 5
+        RIGHT_MOTOR_ENCODER_PIN_B = 5
 
         self.steering_motor_encoder = encoder.encoder(
             STEERING_MOTOR_ENCODER_PIN_A,
@@ -115,13 +115,13 @@ class robot_control:
             simulate=simulate,
         )
 
-        self.left_motor_encoder = encoder.encoder(
-            LEFT_MOTOR_ENCODER_PIN_A, LEFT_MOTOR_ENCODER_PIN_B, simulate=simulate
-        )
+        # self.left_motor_encoder = encoder.encoder(
+        #     LEFT_MOTOR_ENCODER_PIN_A, LEFT_MOTOR_ENCODER_PIN_B, simulate=simulate
+        # )
 
-        self.right_motor_encoder = encoder.encoder(
-            RIGHT_MOTOR_ENCODER_PIN_A, RIGHT_MOTOR_ENCODER_PIN_B, simulate=simulate
-        )
+        # self.right_motor_encoder = encoder.encoder(
+        #     RIGHT_MOTOR_ENCODER_PIN_A, RIGHT_MOTOR_ENCODER_PIN_B, simulate=simulate
+        # )
 
         # check hardware status
         hardware_OK = motor_driver.check_hardware_OK()
@@ -252,9 +252,9 @@ class robot_control:
         self.current_position_node.x_coord += x_dist
         self.current_position_node.y_coord += y_dist
 
-        print(
-            f"To Coord: ({self.desired_node.x_coord}, {self.desired_node.y_coord}), C.Coord: ({self.current_position_node.x_coord:.2f}, {self.current_position_node.y_coord:.2f}), D.Heading: {self.heading.desired_heading:.2f}, C.Heading: {self.heading.current_heading:.2f}, R.Steering Angle: {self.heading.desired_steering_angle:.2f}, C.Steering Angle: {self.heading.current_steering_angle:.2f}, D.Speed: {self.desired_drive_velocity:.2f}, C.Speed: {self.current_drive_velocity:.2f}"
-        )
+        # print(
+        #     f"To Coord: ({self.desired_node.x_coord}, {self.desired_node.y_coord}), C.Coord: ({self.current_position_node.x_coord:.2f}, {self.current_position_node.y_coord:.2f}), D.Heading: {self.heading.desired_heading:.2f}, C.Heading: {self.heading.current_heading:.2f}, R.Steering Angle: {self.heading.desired_steering_angle:.2f}, C.Steering Angle: {self.heading.current_steering_angle:.2f}, D.Speed: {self.desired_drive_velocity:.2f}, C.Speed: {self.current_drive_velocity:.2f}"
+        # )
 
     # TODO init PID
     def init_PID(self):
@@ -266,8 +266,11 @@ class robot_control:
         Teleop_enable: if true, allows for manual control of robot via arrow keys"""
         # self.get_steering_velocity()
 
+        # print(f"teleop: {teleop_enable}")
         # Path VS Teleop
         # determine desired heading between current position and desired node
+
+        ## zz Feb 15 take a look here, comapre read arrow keys heading desired vs current implemetnation
         if not teleop_enable:
             (
                 self.heading.desired_heading,
@@ -395,11 +398,11 @@ class robot_control:
             # limit
             pwm_value = min(pwm_value, 100)
             pwm_value = max(pwm_value, -100)
-
-            print(f"PWM: {pwm_value:.2f}")
+            
+            # print(f"PWM: {pwm_value:.2f}")
 
             # TODO enable drive motors when connected
-            self.left_motor.set_speed(pwm_value)
+            # self.left_motor.set_speed(pwm_value)
             # self.right_motor.set_speed(pwm_value)
 
             # self.left_motor.set_speed(100)
@@ -424,18 +427,20 @@ class robot_control:
         current_heading += steering_ROC * time (assumed to be 1 for now)
         """
         steer_step = self.steering_lock_angle_rad / 3
+        # self.heading.print_heading() / zz Feb 15
+
         # zz temp 20% tolerance
         # TODO zz PID internally in IF statement here, currently just 60 each way
         if self.heading.desired_steering_angle > self.heading.current_steering_angle:
             self.heading.current_steering_angle += steer_step
-            steering_roc = 60
+            steering_roc = 100
             self.steering_motor.set_speed(steering_roc)
 
         elif self.heading.desired_steering_angle < self.heading.current_steering_angle:
 
             self.heading.current_steering_angle -= steer_step
             # TODO handle flipping directions
-            steering_roc = -60
+            steering_roc = -100
             # steering_roc = 0
             self.steering_motor.set_speed(steering_roc)
 
@@ -446,12 +451,18 @@ class robot_control:
         # TODO have better steering corrections
         # Preventing Oversteer:
 
-        if self.left_limit_switch.is_pressed():
-            # self.steering_motor.set_speed(10)
-            self.steering_motor.set_speed(0)
-        elif self.right_limit_switch.is_pressed():
-            # self.steering_motor.set_speed(-10)
-            self.steering_motor.set_speed(0)
+        # if self.left_limit_switch.is_pressed():
+        #     # self.steering_motor.set_speed(10)
+        #     print("LIMIT SWITCH ON")
+        #     self.steering_motor.set_speed(0)
+        # else:
+
+        #     pass
+            # print("LIMIT OFF")
+        # elif self.right_limit_switch.is_pressed():
+        #     # self.steering_motor.set_speed(-10)
+        #     self.steering_motor.set_speed(0)
+        #     # print("LIMIT SWITCH")
 
         # # speed to send to motors:
         # pwm_value = (self.current_drive_velocity / self.max_speed_mps) * 100
@@ -501,24 +512,29 @@ class robot_control:
             else:
                 self.desired_drive_velocity = 0
 
+            zzTemp_speed = 100
             if left_pressed:
-                print("Left arrow key pressed")
+                # print("Left arrow key pressed")
                 # give left velocity, L - 25%, R + 25%
                 # self.left_motor.speed = 25
                 # self.right_motor.speed = 75
                 # self.heading.current_steering_angle = +self.steering_lock_angle_rad / 5
-                self.heading.desired_steering_angle = +self.steering_lock_angle_rad / 5
+                self.heading.desired_steering_angle = +self.steering_lock_angle_rad 
+                self.steering_motor.set_speed(zzTemp_speed)
 
             elif right_pressed:
-                print("Right arrow key pressed")
+                # print("Right arrow key pressed")
                 # give right velocity, L + 25%, R - 25%
                 # self.left_motor.speed = 75
                 # self.right_motor.speed = 25
                 # self.heading.current_steering_angle = -self.steering_lock_angle_rad / 5
-                self.heading.desired_steering_angle = -self.steering_lock_angle_rad / 5
+                self.heading.desired_steering_angle = -self.steering_lock_angle_rad 
+                self.steering_motor.set_speed(-zzTemp_speed)
+
             else:
                 # self.heading.current_steering_angle = 0
                 self.heading.desired_steering_angle = 0
+                self.steering_motor.set_speed(0)
 
         except Exception as e:
             print(f"An error occurred: {e}")

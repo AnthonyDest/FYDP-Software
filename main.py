@@ -34,14 +34,15 @@ class Robot:
             state = states.state
 
             # make hyperparameter/arg
-
+            print("Start")
             if teleop_enable_arg:
                 current_state = state.manual
             else:
-                current_state = state.initialization
+                # current_state = state.initialization
+                current_state = state.follow_path
 
             self.robot_control.reset_timer()
-
+            # self.robot_control.steering_motor.set_speed(100)
             zzEscape = 0
             # TODO enter all states and how to handle here
             while True:
@@ -102,12 +103,18 @@ class Robot:
                 elif current_state == state.manual:
                     # near_node = self.robot_control.is_robot_near_desired_node()
 
+                    # current_state = state.initialization
+
+                    # self.robot_control.steering_motor.set_speed(50)
+                    pass
+
                     # self.robot_control.read_arrow_keys()
-                    self.robot_control.steer_robot(teleop_enable=teleop_enable_arg)
+                    
+                    # self.robot_control.steer_robot(teleop_enable=teleop_enable_arg)
 
-                    self.robot_control.execute_desired(simulate=simulate_enable_arg)
+                    # self.robot_control.execute_desired(simulate=simulate_enable_arg)
 
-                    self.robot_control.plot_robot_position()
+                    # self.robot_control.plot_robot_position()
 
                     # case state.end:
                 elif current_state == state.end:
@@ -127,14 +134,23 @@ class Robot:
                     pass
 
                 # print(f"Current State: {current_state}")
-                zzEscape += 1
-                if zzEscape > 2000:
+                
+                # zzEscape += 1
+                if zzEscape > 20000:
                     print("zzEscape")
+                    self.robot_control.steering_motor.close()
                     return None
         except KeyboardInterrupt:
             print("Exit handled")
-            self.robot_control.left_motor.close()
-            self.robot_control.right_motor.close()
+            self.robot_control.steering_motor.close()
+            # self.robot_control.left_limit_switch.close()
+            # self.robot_control.right_limit_switch.close()
+
+
+
+            # self.robot_control.left_motor.close()
+            # self.robot_control.right_motor.close()
+            
 
 
 # accommodate robot turning on, how to enter script, necessary hardware... (https://raspberrypi-guide.github.io/programming/run-script-on-boot)

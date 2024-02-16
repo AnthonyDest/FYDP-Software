@@ -70,6 +70,7 @@ class Motor:
 
         # Set the duty cycle of the PWM signal
         self.pwm.ChangeDutyCycle(duty_cycle)
+        print("MOTOR AT: ", duty_cycle)
 
     @check_simulate
     def spin_clockwise(self):

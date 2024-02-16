@@ -127,9 +127,9 @@ class heading:
         return math.sin(heading)
 
     def print_heading(self):
-        # print(
-        #     f"To Coord: ({self.desired_node.x_coord}, {self.desired_node.y_coord}), Current Coord: ({self.current_position_node.x_coord}, {self.current_position_node.y_coord}), Desired Heading: {self.desired_heading}, Current heading: {self.current_position_node.heading}, Required Steering Angle: {self.required_steering_angle}, Current Steering Angle: {self.steering_angle}"
-        # )
+        print(
+            f"To Coord: ({self.desired_node.x_coord}, {self.desired_node.y_coord}), Current Coord: ({self.current_position_node.x_coord}, {self.current_position_node.y_coord}), Desired Heading: {self.desired_heading}, Current heading: {self.current_position_node.heading}, Required Steering Angle: {self.required_steering_angle}, Current Steering Angle: {self.steering_angle}"
+        )
         pass
 
 
