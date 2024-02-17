@@ -1,6 +1,19 @@
 import math
 import time
 
+try:
+    import RPi.GPIO as gpio
+except ImportError:
+    gpio = None
+    print("RPi.GPIO not available. GPIO functionality will be disabled.")
+
+
+def is_hardware_OK():
+    if gpio is None:
+        print("Simulate not enabled, but GPIO Disabled due to import error")
+        return False
+    return True
+
 
 # contains information relating to robot current or desired kinematic state
 # [x_coord, y_coord, heading, velocity]
@@ -137,6 +150,7 @@ def check_simulate(func):
     def wrapper(self, *args, **kwargs):
         # print(f"Simulate: {self.simulate}")
         if self.simulate:
+            # print(f"{self.name} is Simulated")
             return False
         else:
             # Call the original function

@@ -1,25 +1,17 @@
-from helper import check_simulate
+from helper import *
 from gpiozero import RotaryEncoder
-
-try:
-    import RPi.GPIO as gpio
-except ImportError:
-    gpio = None
-    print("RPi.gpio not available. gpio functionality will be disabled.")
 
 
 class encoder:
 
     # TODO incorporate max steps and steps/rotation into parameters for steering vs drive
-    def __init__(self, pin_A, pin_B, simulate=False):
+    def __init__(self, pin_A, pin_B, name="No_name_encoder", simulate=False):
         self.pin_A = pin_A
         self.pin_B = pin_B
-
+        self.name = name
         self.simulate = simulate
-
-        if gpio is None:
-            print("GPIO Disabled")
-            return None
+        if self.simulate:
+            print(f"{self.name} is Simulated")
         self.init_pins()
 
     @check_simulate
@@ -53,3 +45,10 @@ class encoder:
     def get_steps(self):
         print(f"Encoder Steps: {self.encoder.steps}")
         return self.encoder.steps
+
+    @check_simulate
+    def close(self):
+        self.contact_pin.stop()
+        self.pin_A.stop()
+        self.pin_B.stop()
+        gpio.cleanup()

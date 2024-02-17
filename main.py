@@ -15,7 +15,7 @@ class Robot:
     # zz replace passing in objects with a parent class that has all the objects
     def __init__(self):
         self.robot_control = robot_control.robot_control()
-        self.robot_control.initialize_modules(simulate_enable_arg)
+        self.robot_control.initialize_modules(simulate_all_arg)
 
     def clear_rink(self):
         pass
@@ -79,7 +79,7 @@ class Robot:
                     # )
 
                     # steer and drive will act as an if statement for control, part of parent loop of state machine
-                    self.robot_control.drive_path(simulate_feedback=simulate_enable_arg)
+                    self.robot_control.drive_path(simulate_feedback=simulate_all_arg)
 
                     # plot robot current position
                     self.robot_control.plot_robot_position()
@@ -105,7 +105,7 @@ class Robot:
                     # self.robot_control.read_arrow_keys()
                     self.robot_control.steer_robot(teleop_enable=teleop_enable_arg)
 
-                    self.robot_control.execute_desired(simulate=simulate_enable_arg)
+                    self.robot_control.execute_desired(simulate=simulate_all_arg)
 
                     self.robot_control.plot_robot_position()
 
@@ -128,13 +128,14 @@ class Robot:
 
                 # print(f"Current State: {current_state}")
                 zzEscape += 1
-                if zzEscape > 2000:
+                if zzEscape > 20:
                     print("zzEscape")
+                    self.robot_control.close_modules()
                     return None
         except KeyboardInterrupt:
             print("Exit handled")
-            self.robot_control.left_motor.close()
-            self.robot_control.right_motor.close()
+            # self.robot_control.path_planning.stop_interactive_plot()  # zz check
+            self.robot_control.close_modules()
 
 
 # accommodate robot turning on, how to enter script, necessary hardware... (https://raspberrypi-guide.github.io/programming/run-script-on-boot)
@@ -154,7 +155,7 @@ try:
 
     # Set teleop_enable to True if --teleop is specified
     teleop_enable_arg = cli.teleop
-    simulate_enable_arg = cli.simulate
+    simulate_all_arg = cli.simulate
 
     # zz temp auto enable simulate for testing convenience
     # TODO perhaps if gpio is not available, auto implement then auto enable simulate
