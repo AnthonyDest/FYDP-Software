@@ -237,11 +237,14 @@ class robot_control:
 
     def plot_robot_position(self):
         self.path_planning.plot_robot(self.current_position_node, show_rink=True)
+        print(
+            f"To Coord: ({self.desired_node.x_coord}, {self.desired_node.y_coord}), C.Coord: ({self.current_position_node.x_coord:.2f}, {self.current_position_node.y_coord:.2f}), D.Heading: {self.heading.desired_heading:.2f}, C.Heading: {self.heading.current_heading:.2f}, R.Steering Angle: {self.heading.desired_steering_angle:.2f}, C.Steering Angle: {self.heading.current_steering_angle:.2f}, D.Speed: {self.desired_drive_velocity:.2f}, C.Speed: {self.current_drive_velocity:.2f}"
+        )
 
     def reset_timer(self):
         self.time_at_last_update = self.timer.get_current_time()
 
-    def drive_path(self, simulate_feedback=False):
+    def drive_path(self):
         'has PID "loops" for steering and drive motors. also has the option to simulate motor feedback'
 
         # controls steering, either auto path follow to next node, or teleop
@@ -250,34 +253,21 @@ class robot_control:
         self.speed_robot(teleop_enable=False)
 
         # sets current = desired (both steering a)
-        self.execute_desired(simulate=simulate_feedback)
+        self.execute_desired()
 
-    def execute_desired(self, simulate=False):
+    def execute_desired(self):
         """Drive: Receives velocity and steering angle, updates position based on velocity and heading
         If simulate = True, provide a velocity of 1"""
 
-        if simulate:
+        # zz execute steering commands to motor hardware
+        self.execute_steering()
 
-            # zz execute steering commands to motor hardware
-            self.execute_steering(simulate=simulate)
+        # zz execute drive commands to motor hardware
+        # self.execute_velocity()
+        self.execute_drive()
 
-            # zz execute drive commands to motor hardware
-            self.execute_drive(simulate=simulate)
-
-            # TODO use velocity x timestep to calculate distance
-            distance = self.current_drive_velocity / 2
-
-        else:  # zz technically, this also simulates movement until we get encoders
-
-            # zz execute steering commands to motor hardware
-            self.execute_steering()
-
-            # zz execute drive commands to motor hardware
-            # self.execute_velocity()
-            self.execute_drive(simulate=simulate)
-
-            # TODO use velocity x timestep to calculate distance based on encoder values
-            distance = self.current_drive_velocity / 2
+        # TODO use velocity x timestep to calculate distance based on encoder values
+        distance = self.current_drive_velocity / 2
 
         # use velocity * change in elapsed time to calculate distance moved
         # TODO replace velocity with a function that uses encoders and pose to calculate velocity
@@ -427,7 +417,7 @@ class robot_control:
 
     # TODO get velocity from merge sensor data, primarily use encoders and pose?
     # zz remove simulate in param
-    def execute_drive(self, simulate=False):
+    def execute_drive(self):
 
         speed_step = self.max_speed_mps / 10
 

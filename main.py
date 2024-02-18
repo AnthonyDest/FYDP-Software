@@ -73,13 +73,8 @@ class Robot:
                             current_state = state.end
                             continue
 
-                    # # zz manual moving for simulation
-                    # self.robot_control.current_position_node = (
-                    #     self.robot_control.desired_node
-                    # )
-
                     # steer and drive will act as an if statement for control, part of parent loop of state machine
-                    self.robot_control.drive_path(simulate_feedback=simulate_all_arg)
+                    self.robot_control.drive_path()
 
                     # plot robot current position
                     self.robot_control.plot_robot_position()
@@ -105,7 +100,7 @@ class Robot:
                     # self.robot_control.read_arrow_keys()
                     self.robot_control.steer_robot(teleop_enable=teleop_enable_arg)
 
-                    self.robot_control.execute_desired(simulate=simulate_all_arg)
+                    self.robot_control.execute_desired()
 
                     self.robot_control.plot_robot_position()
 
