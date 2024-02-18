@@ -148,6 +148,7 @@ class robot_control:
             STEERING_MOTOR_ENCODER_PIN_B,
             name="steering_motor_encoder",
             simulate=simulate_steering_motor_encoder,
+            center_angle_rad=self.steering_lock_angle_rad,
         )
 
         self.left_motor_encoder = encoder.encoder(
@@ -205,6 +206,7 @@ class robot_control:
 
     def check_in_range(self, number_to_check, range):
         # get the max and min values of a range
+        # zz perhaps minor performance improvements here
         up_range = max(range)
         low_range = min(range)
         if low_range <= number_to_check <= up_range:
@@ -361,7 +363,10 @@ class robot_control:
 
     # TODO improve sequence/set_speed fxn if desired = current
     # zz modify the speeds to bump, make a bump function?
+    # TODO make a quick home function if a limit switch is bumped while driving? Only modifies the edge hit
     def home_steering(self):
+
+        homing_speed = 30  # TODO Update / use PID for slow homing
 
         # zz check first that all necessary hardware is active:
         if (
@@ -373,9 +378,9 @@ class robot_control:
             print("Cannot home steering, not all hardware is active")
             return
 
-        # if steering is at limit, bump it right
-        while self.left_limit_switch.is_pressed():
-            self.steering_motor.set_speed(5)
+        # if steering is at limit, bump it left
+        while self.right_limit_switch.is_pressed():
+            self.steering_motor.set_speed(-homing_speed)
 
         # stop motor
         self.steering_motor.set_speed(0)
@@ -383,35 +388,47 @@ class robot_control:
         # zz should wait a few second, until we have better PID/motor inertia handling for motor firmware
         self.timer.wait_seconds(2)
 
-        self.steering_motor.set_speed(-5)
-
-        # bump steering left till limit switch is pressed
-        while not self.left_limit_switch():
-            # wait...
-            pass
-
-        # stop motor
-        self.steering_motor.set_speed(0)
-
-        # set steering encoder left home here
-        self.steering_motor_encoder.home_left()
-
-        # zz should wait a few second, until we have better PID/motor inertia handling for motor firmware
-        self.timer.wait_seconds(2)
-
-        self.steering_motor.set_speed(5)
+        self.steering_motor.set_speed(homing_speed)
 
         # bump steering right till limit switch is pressed
         while not self.right_limit_switch():
             # wait...
             pass
 
+        # stop motor
         self.steering_motor.set_speed(0)
 
         # set steering encoder right home here
         self.steering_motor_encoder.home_right()
 
+        # zz should wait a few second, until we have better PID/motor inertia handling for motor firmware
+        self.timer.wait_seconds(2)
+
+        self.steering_motor.set_speed(-homing_speed)
+
+        # bump steering left till limit switch is pressed
+        while not self.left_limit_switch():
+            # wait...
+            pass
+
+        self.steering_motor.set_speed(0)
+
+        # set steering encoder left home here
+        self.steering_motor_encoder.home_left()
+
+        # update steering encoder with angles
+        self.steering_motor_encoder.update_steering_angle_per_step(
+            self.steering_lock_angle_rad
+        )
+
         # zz should wait a few second, then center the steering motor
+        # zz do we even care about this? or is it more efficient to just start path planning from here?
+        self.steering_motor.set_speed(homing_speed)
+        while self.steering_motor_encoder.get_steering_angle_rad() > 0:
+            # wait...
+            pass
+        self.steering_motor.set_speed(0)
+        self.timer.wait_seconds(2)
 
     # TODO all low level drive commands, when function receives relative coords between two nodes
 
@@ -456,7 +473,7 @@ class robot_control:
 
         # else:  # real
 
-        # TODO replace with PID (No PID, very agressive turning)
+        # TODO replace with PID (No PID, very aggressive turning)
         """
         Steering angle input
 
@@ -464,29 +481,20 @@ class robot_control:
 
         current_heading += steering_ROC * time (assumed to be 1 for now)
         """
-        steer_step = self.steering_lock_angle_rad / 3
-        # zz temp 20% tolerance
-        # TODO zz PID internally in IF statement here, currently just 60 each way
-        if self.heading.desired_steering_angle > self.heading.current_steering_angle:
-            self.heading.current_steering_angle += steer_step
-            steering_roc = 60
-            self.steering_motor.set_speed(steering_roc)
 
-        elif self.heading.desired_steering_angle < self.heading.current_steering_angle:
+        # Have desired steering angle and current steering angle
+        # self.heading.current_steering_angle = (
+        #     self.steering_motor_encoder.get_steering_angle_rad()
+        # )
 
-            self.heading.current_steering_angle -= steer_step
-            # TODO handle flipping directions
-            steering_roc = -60
-            # steering_roc = 0
-            self.steering_motor.set_speed(steering_roc)
+        self.update_current_steering_angle()
 
-        else:
-            steering_roc = 0
-            self.steering_motor.set_speed(steering_roc)
+        self.steer_PID_rad(
+            self.heading.desired_steering_angle, self.heading.current_steering_angle
+        )
 
-        # TODO have better steering corrections
-        # Preventing Oversteer:
-
+        # TODO have better steering corrections (steer back on path)
+        # Preventing Oversteer
         if self.left_limit_switch.is_pressed():
             # self.steering_motor.set_speed(10)
             self.steering_motor.set_speed(0)
@@ -494,22 +502,42 @@ class robot_control:
             # self.steering_motor.set_speed(-10)
             self.steering_motor.set_speed(0)
 
-        # # speed to send to motors:
-        # pwm_value = (self.current_drive_velocity / self.max_speed_mps) * 100
+    def update_current_steering_angle(self):
 
-        # # limit
-        # pwm_value = min(pwm_value, 100)
-        # pwm_value = max(pwm_value, -100)
+        if self.steering_motor_encoder.simulate:
+            # zz slightly redundant
+            # zz awk, kinda simulates the delta that goes into PID, improve
+            if (
+                self.heading.desired_steering_angle
+                > self.heading.current_steering_angle
+            ):
+                self.heading.current_steering_angle += self.steering_lock_angle_rad / 3
+            elif (
+                self.heading.desired_steering_angle
+                < self.heading.current_steering_angle
+            ):
+                self.heading.current_steering_angle -= self.steering_lock_angle_rad / 3
+            else:
+                self.heading.current_steering_angle = 0
 
-        # print(f"PWM: {pwm_value:.2f}")
+            # return self.heading.current_steering_angle
+        else:
+            self.heading.current_steering_angle = (
+                self.steering_motor_encoder.get_steering_angle_rad()
+            )
+            # return self.steering_motor_encoder.get_steering_angle_rad()
 
-        # TODO enable drive motors when connected
-        # self.left_motor.set_speed(pwm_value)
-        # self.right_motor.set_speed(pwm_value)
+    def steer_PID_rad(self, desired_angle, current_angle):
+        delta_angle = desired_angle - current_angle
+        # print(delta_angle)
+        self.steering_motor.set_speed(delta_angle * 30)  # replace with PID
 
-        # self.left_motor.set_speed(100)
+    # def steer_angle_rad(self, angle):
+    #     self.heading.desired_steering_angle = angle
 
-    # pass
+    # # TODO confirm conversion wraparound ok
+    # def steer_angle_deg(self, angle):
+    #     self.steer_angle_rad(math.radians(angle))
 
     # TODO get encoder values
     def get_encoder_values(self):

@@ -122,7 +122,7 @@ class Robot:
                     pass
 
                 # print(f"Current State: {current_state}")
-                zzEscape += 1
+                # zzEscape += 1
                 if zzEscape > 20:
                     print("zzEscape")
                     self.robot_control.close_modules()

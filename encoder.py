@@ -2,13 +2,17 @@ from helper import *
 from gpiozero import RotaryEncoder
 
 
+# TODO make this a parent class with children steering and drive encoders
 class encoder:
 
     # TODO incorporate max steps and steps/rotation into parameters for steering vs drive
-    def __init__(self, pin_A, pin_B, name="No_name_encoder", simulate=False):
+    def __init__(
+        self, pin_A, pin_B, name="No_name_encoder", simulate=False, center_angle_rad=0
+    ):
         self.pin_A = pin_A
         self.pin_B = pin_B
         self.name = name
+        self.center_angle_rad = center_angle_rad
         self.simulate = simulate
         if self.simulate:
             print(f"{self.name} is Simulated")
@@ -33,18 +37,42 @@ class encoder:
     # also needs a, if ever hit limit switch, rehome?
     @check_simulate
     def home_left(self):
-        self.encoder.steps = 0
+        self.encoder.steps = self.encoder.steps
         print(f"Left Encoder Homed, Steps: {self.encoder.steps}")
 
     @check_simulate
     def home_right(self):
-        self.max_steering_steps = self.encoder.steps
+        self.encoder.steps = 0
         print(f"Right Encoder Homed, Steps: {self.encoder.steps}")
 
     @check_simulate
     def get_steps(self):
         print(f"Encoder Steps: {self.encoder.steps}")
         return self.encoder.steps
+
+    @check_simulate
+    # TODO change max_steering_angle_lock_rad based on what is easiest to measure
+    def update_steering_angle_per_step(self, max_steering_angle_lock_rad):
+        # TODO scale down max_steering_angle_lock_rad based on a tolerance (or just input with tolerance?)
+
+        self.angle_rad_per_step = (
+            max_steering_angle_lock_rad * 2 / self.max_steering_steps
+        )
+
+        self.center_angle_rad = max_steering_angle_lock_rad
+
+    @check_simulate
+    def get_steering_angle_rad(self):
+        "left is positive, center is 0, right is negative"
+        angle = self._get_steering_angle_rad()
+        if angle is False:
+            return self.center_angle_rad / 10
+        return angle
+
+    @check_simulate
+    def _get_steering_angle_rad(self):
+        angle = self.encoder.steps * self.angle_rad_per_step - self.center_angle_rad
+        return angle
 
     @check_simulate
     def close(self):
