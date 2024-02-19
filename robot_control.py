@@ -20,7 +20,7 @@ class robot_control:
         # self.steering_velocity = 0  # angle per second
         self.steering_lock_angle_rad = math.radians(30)  # rads # zz make hyperparameter
         self.max_speed_mps = 1  # rads # zz make hyperparameter
-        self.desired_drive_velocity = 0  # meters per second
+        self.desired_drive_velocity = 0  # meters per second, zz change to PWM?
         self.current_drive_velocity = 0  # meters per second
         self.time_at_last_update = 0
         self.timer = helper.timer()
@@ -166,9 +166,7 @@ class robot_control:
         )
 
         # TODO get Kp, Ki, Kd values from tuning
-        self._steering_pid_controller = PID(
-            Kp=1, Ki=0, Kd=0, setpoint=0, output_limits=(-100, 100)
-        )
+        self.init_steering_PID()
 
         # check hardware status
         # hardware_OK = motor_driver.check_hardware_OK()
@@ -242,11 +240,12 @@ class robot_control:
         self.desired_node = self.path_planning.path.nodes[self.current_step_number]
         return True
 
-    def plot_robot_position(self):
+    def plot_robot_position(self, printout=False):
         self.path_planning.plot_robot(self.current_position_node, show_rink=True)
-        print(
-            f"To Coord: ({self.desired_node.x_coord}, {self.desired_node.y_coord}), C.Coord: ({self.current_position_node.x_coord:.2f}, {self.current_position_node.y_coord:.2f}), D.Heading: {self.heading.desired_heading:.2f}, C.Heading: {self.heading.current_heading:.2f}, R.Steering Angle: {self.heading.desired_steering_angle:.2f}, C.Steering Angle: {self.heading.current_steering_angle:.2f}, D.Speed: {self.desired_drive_velocity:.2f}, C.Speed: {self.current_drive_velocity:.2f}"
-        )
+        if printout:
+            print(
+                f"To Coord: ({self.desired_node.x_coord}, {self.desired_node.y_coord}), C.Coord: ({self.current_position_node.x_coord:.2f}, {self.current_position_node.y_coord:.2f}), D.Heading: {self.heading.desired_heading:.2f}, C.Heading: {self.heading.current_heading:.2f}, R.Steering Angle: {self.heading.desired_steering_angle:.2f}, C.Steering Angle: {self.heading.current_steering_angle:.2f}, D.Speed: {self.desired_drive_velocity:.2f}, C.Speed: {self.current_drive_velocity:.2f}"
+            )
 
     def reset_timer(self):
         self.time_at_last_update = self.timer.get_current_time()
@@ -306,8 +305,12 @@ class robot_control:
         # )
 
     # TODO init PID
-    def init_PID(self):
-        self.steering_pid = PID(1, 0.1, 0.05, setpoint=1)
+    def init_steering_PID(
+        self, Kp=10, Ki=0, Kd=0, setpoint=0, output_limits=(-100, 100)
+    ):
+        self._steering_pid_controller = PID(
+            Kp=Kp, Ki=Ki, Kd=Kd, setpoint=setpoint, output_limits=output_limits
+        )
 
     # TODO steer robot to desired heading
     def steer_robot(self, teleop_enable=False):
@@ -464,7 +467,8 @@ class robot_control:
         pwm_value = (self.current_drive_velocity / self.max_speed_mps) * 100
 
         # TODO enable drive motors when connected
-        self.left_motor.set_speed(pwm_value)
+        self.drive_pwm(pwm_value)
+        # self.left_motor.set_speed(pwm_value)
         # self.right_motor.set_speed(pwm_value)
 
         # self.left_motor.set_speed(100)
@@ -487,17 +491,7 @@ class robot_control:
         current_heading += steering_ROC * time (assumed to be 1 for now)
         """
 
-        # Have desired steering angle and current steering angle
-        # self.heading.current_steering_angle = (
-        #     self.steering_motor_encoder.get_steering_angle_rad()
-        # )
-
-        self.update_current_steering_angle()
-
-
-        self.steer_PID_rad(
-            self.heading.desired_steering_angle, self.heading.current_steering_angle
-        )
+        self.steer_PID_rad(self.heading.desired_steering_angle)
 
         # TODO have better steering corrections (steer back on path)
         # Preventing Oversteer
@@ -533,44 +527,42 @@ class robot_control:
             )
             # return self.steering_motor_encoder.get_steering_angle_rad()
 
-    def steer_PID_rad(self, desired_angle, current_angle):
-        delta_angle = desired_angle - current_angle
-        # print(delta_angle)
-        self.steering_motor.set_speed(delta_angle * 30)  # replace with PID
+    # TODO check if this function works in polling, or if it needs to be threaded
+    def steer_PID_deg(self, desired_angle):
+        print(f"deg: {desired_angle}, rad: {math.radians(desired_angle)}")
+        self.steer_PID_rad(math.radians(desired_angle))
 
-    # def steer_angle_rad(self, angle):
-    #     self.heading.desired_steering_angle = angle
+    # TODO check if this function works in polling, or if it needs to be threaded
+    def steer_PID_rad(self, desired_angle):
+        """Receive: desired angle of steering rack in radians
+        if real: send motors corresponding PID PWM value, receive encoder values to update current heading
+        if simulate, receive current steering += PID_output/<scaling> to steer"""
 
-    # pass
-    def steer_pwm(self, desired=None, current=None):
+        current_angle = self.heading.current_steering_angle
+        self._steering_pid_controller.setpoint = desired_angle
+        pid_out = self._steering_pid_controller(current_angle)
 
-        # Use the provided values or use defaults if they are None
-        desired = (
-            desired if desired is not None else self.heading.desired_steering_angle
-        )
-        current = (
-            current if current is not None else self.heading.current_steering_angle
-        )
+        self.steering_motor.set_speed(pid_out)
+        # TODO tune PID_output speed PWM value to motor turning angle for sim
+        # TODO check if this updates fast enough
+        print(f"current_angle: {current_angle}, pid_out: {pid_out}")
 
-        # if desired is not None or current is not None:
-
-        #     steering_input = self._steering_pid_controller(
-        #         self.heading.current_steering_angle, self.heading.desired_steering_angle
-        #     )
-        # else:
-        #     steering_input = self._steering_pid_controller(current, desired)
-        steering_input = self._steering_pid_controller(current, desired)
-
-        self.steering_motor.set_speed(steering_input)
+        if self.steering_motor_encoder.simulate:
+            self.heading.current_steering_angle += pid_out / 50
+        else:
+            self.heading.current_steering_angle = (
+                self.steering_motor_encoder.get_steering_angle_rad()
+            )
 
     # zz check desired velocity
-    def drive_pwm(self):
-        pass
+    # zz both motors should be going the same way bc rotated 180deg & opposite side of gear
+    def drive_pwm(self, desired_pwm):
+        self.left_motor.set_speed(desired_pwm)
+        self.right_motor.set_speed(desired_pwm)
 
     # # TODO confirm conversion wraparound ok
     # def steer_angle_deg(self, angle):
     #     self.steer_angle_rad(math.radians(angle))
-
 
     # TODO get encoder values
     def get_encoder_values(self):
@@ -621,6 +613,36 @@ class robot_control:
             else:
                 # self.heading.current_steering_angle = 0
                 self.heading.desired_steering_angle = 0
+
+        except Exception as e:
+            print(f"An error occurred: {e}")
+
+    def _testing_read_arrow_keys(self):
+        try:
+            # Check for each arrow key independently
+            up_pressed = keyboard.is_pressed("up")
+            down_pressed = keyboard.is_pressed("down")
+            left_pressed = keyboard.is_pressed("left")
+            right_pressed = keyboard.is_pressed("right")
+
+            # for steering
+            if left_pressed:
+                print("Left arrow key pressed")
+                self.heading.desired_steering_angle = +self.steering_lock_angle_rad / 5
+
+            elif right_pressed:
+                print("Right arrow key pressed")
+                self.heading.desired_steering_angle = -self.steering_lock_angle_rad / 5
+            else:
+                self.heading.desired_steering_angle = 0
+
+            # for testing
+
+            s_pressed = keyboard.is_pressed("s")
+            if s_pressed:
+                print("S key pressed")
+
+            return s_pressed
 
         except Exception as e:
             print(f"An error occurred: {e}")

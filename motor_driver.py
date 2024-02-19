@@ -3,14 +3,25 @@ from helper import *
 
 class Motor:
     def __init__(
-        self, pwm_pin, in_1_pin, in_2_pin, name="No_name_motor", simulate=False
+        self,
+        pwm_pin,
+        in_1_pin,
+        in_2_pin,
+        name="No_name_motor",
+        simulate=False,
+        lowest_pwm=20,
+        pwm_step=10,
     ):
         self.pwm_pin = pwm_pin
         self.in_1 = in_1_pin
         self.in_2 = in_2_pin
         self.name = name
         self.simulate = simulate
-        self.speed = 0
+        self.speed = 0  # zz depreciated?
+        self.lowest_pwm = lowest_pwm
+        self.pwm_step = pwm_step
+        self.current_pwm = 0
+
         if self.simulate:
             print(f"{self.name} is Simulated")
         # configure pins
@@ -33,10 +44,20 @@ class Motor:
         self.pwm.start(0)
 
     @check_simulate
+    def linear_ramp_speed(self, desired_pwm):
+
+        delta_pwm = desired_pwm - self.current_pwm
+
+        if abs(delta_pwm) < self.pwm_step:
+            self.set_speed(desired_pwm)
+        else:
+            self.set_speed(self.current_pwm + self.pwm_step * np.sign(delta_pwm))
+
+    @check_simulate
     def set_speed(self, duty_cycle):
         "CW is +, CCW is -, 0 is stop, 100 is max speed, -100 is max reverse speed, 50 is half speed, etc."
         # limit duty cycle
-
+        self.current_pwm = duty_cycle
         # set pins based on duty cycle
         # "Forward"
         if duty_cycle > 0:

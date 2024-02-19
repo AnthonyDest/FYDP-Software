@@ -28,7 +28,7 @@ class Robot:
             self.robot_control.path_planning.generate_path()
             # self.robot_control.path_planning.plot_rink_border()
             # self.robot_control.path_planning.plot_path(show_rink=True)
-            self.robot_control.plot_robot_position()
+            # self.robot_control.plot_robot_position(printout=printout_arg)
             # self.robot_control.steer_robot()
 
             state = states.state
@@ -37,7 +37,11 @@ class Robot:
 
             if teleop_enable_arg:
                 current_state = state.manual
+                self.robot_control.plot_robot_position(printout=printout_arg)
+            elif tune_steering_arg:
+                current_state = state.tune_steering_pid
             else:
+                self.robot_control.plot_robot_position(printout=printout_arg)
                 current_state = state.initialization
 
             self.robot_control.reset_timer()
@@ -77,7 +81,7 @@ class Robot:
                     self.robot_control.drive_path()
 
                     # plot robot current position
-                    self.robot_control.plot_robot_position()
+                    self.robot_control.plot_robot_position(printout=printout_arg)
 
                     # if node.type = travel, switch to travel_to_refill
                 #     pass
@@ -102,19 +106,67 @@ class Robot:
 
                     self.robot_control.execute_desired()
 
-                    self.robot_control.plot_robot_position()
+                    self.robot_control.plot_robot_position(printout=printout_arg)
 
-                    # case state.end:
+                elif current_state == state.tune_steering_pid:
+                    """This is a temporary state to tune the steering PID controller."""
+                    # self.robot_control.steer_robot(teleop_enable=True)
+
+                    if zzEscape == 1:
+                        self.robot_control.init_steering_PID(Kp=50, Ki=0, Kd=0)
+                        self.robot_control.path_planning.stop_interactive_plot()
+                        print("Tuning steering PID")
+                        print(
+                            f"Current steering PID: P: {self.robot_control._steering_pid_controller.Kp} I: {self.robot_control._steering_pid_controller.Ki} D: {self.robot_control._steering_pid_controller.Kd}"
+                        )
+
+                    s_pressed = self.robot_control._testing_read_arrow_keys()
+                    self.robot_control.execute_desired()
+
+                    # self._steering_pid_controller = PID(Kp=10, Ki=0, Kd=0, setpoint=0, output_limits=(-100, 100))
+
+                    # manually steer using arrowkeys, when ready, click s to start tuning
+                    # if s is pressed, we want to tune
+                    if s_pressed:
+                        user_input = input(
+                            "Enter angle to steer to (+Left, -Right) or DISABLED: press Enter for default "
+                        )
+
+                        if user_input:
+                            input_rad = robot_control.math.radians(float(user_input))
+                            while (
+                                self.robot_control.heading.current_steering_angle
+                                != input_rad
+                            ):
+                                self.robot_control.steer_PID_deg(float(user_input))
+                                print(
+                                    f"Current steering angle: {robot_control.math.degrees(self.robot_control.heading.current_steering_angle)}"
+                                )
+
+                            print(
+                                f"ENDED: Current steering angle: {robot_control.math.degrees(self.robot_control.heading.current_steering_angle)}"
+                            )
+                            print("waiting_start")
+                            self.robot_control.timer.wait_seconds(2)
+                            print("waiting_end")
+                        else:
+                            # default turn of left 2 degrees, left 5 degrees
+                            # print("Default turns of left 2 degrees")
+                            pass
+
+                    self.robot_control.timer.wait_seconds(0.1)
+
                 elif current_state == state.end:
                     print("Travel done")
 
                     # wait for user to finish analyzing plots
                     self.robot_control.path_planning.stop_interactive_plot()
 
-                    self.robot_control.plot_robot_position()
+                    # self.robot_control.plot_robot_position(printout=printout_arg)
 
                     # plt.ioff
-                    return None
+                    self.robot_control.close_modules()
+                    break
 
                     # case _:
                     #     pass
@@ -122,11 +174,11 @@ class Robot:
                     pass
 
                 # print(f"Current State: {current_state}")
-                # zzEscape += 1
-                if zzEscape > 20:
+                zzEscape += 1
+                if zzEscape > 200:
                     print("zzEscape")
-                    self.robot_control.close_modules()
-                    return None
+                    current_state = state.end
+
         except KeyboardInterrupt:
             print("Exit handled")
             # self.robot_control.path_planning.stop_interactive_plot()  # zz check
@@ -144,6 +196,12 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="IndexEngine")
     parser.add_argument("--teleop", action="store_true", help="Enable teleop")
     parser.add_argument("--simulate", action="store_true", help="Enable teleop")
+    parser.add_argument(
+        "--printout", action="store_true", help="Enable printout of position data"
+    )
+    parser.add_argument(
+        "--tune-steer", action="store_true", help="Tune the steering PID"
+    )
 
 try:
     cli = parser.parse_args()
@@ -151,6 +209,8 @@ try:
     # Set teleop_enable to True if --teleop is specified
     teleop_enable_arg = cli.teleop
     simulate_all_arg = cli.simulate
+    printout_arg = cli.printout
+    tune_steering_arg = cli.tune_steer
 
     # zz temp auto enable simulate for testing convenience
     # TODO perhaps if gpio is not available, auto implement then auto enable simulate

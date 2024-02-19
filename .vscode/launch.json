@@ -45,6 +45,17 @@
             "args": [
                 "--teleop"
             ]
-        }
+        },
+        {
+            "name": "Tune Steering PID",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/main.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": [
+                "--tune-steer"
+            ]
+        },
     ]
 }
