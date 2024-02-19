@@ -165,6 +165,11 @@ class robot_control:
             simulate=simulate_right_motor_encoder,
         )
 
+        # TODO get Kp, Ki, Kd values from tuning
+        self._steering_pid_controller = PID(
+            Kp=1, Ki=0, Kd=0, setpoint=0, output_limits=(-100, 100)
+        )
+
         # check hardware status
         # hardware_OK = motor_driver.check_hardware_OK()
         # if not hardware_OK:
@@ -489,6 +494,7 @@ class robot_control:
 
         self.update_current_steering_angle()
 
+
         self.steer_PID_rad(
             self.heading.desired_steering_angle, self.heading.current_steering_angle
         )
@@ -535,9 +541,36 @@ class robot_control:
     # def steer_angle_rad(self, angle):
     #     self.heading.desired_steering_angle = angle
 
+    # pass
+    def steer_pwm(self, desired=None, current=None):
+
+        # Use the provided values or use defaults if they are None
+        desired = (
+            desired if desired is not None else self.heading.desired_steering_angle
+        )
+        current = (
+            current if current is not None else self.heading.current_steering_angle
+        )
+
+        # if desired is not None or current is not None:
+
+        #     steering_input = self._steering_pid_controller(
+        #         self.heading.current_steering_angle, self.heading.desired_steering_angle
+        #     )
+        # else:
+        #     steering_input = self._steering_pid_controller(current, desired)
+        steering_input = self._steering_pid_controller(current, desired)
+
+        self.steering_motor.set_speed(steering_input)
+
+    # zz check desired velocity
+    def drive_pwm(self):
+        pass
+
     # # TODO confirm conversion wraparound ok
     # def steer_angle_deg(self, angle):
     #     self.steer_angle_rad(math.radians(angle))
+
 
     # TODO get encoder values
     def get_encoder_values(self):
