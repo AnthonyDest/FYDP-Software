@@ -14,6 +14,7 @@ class encoder:
         self.name = name
         self.center_angle_rad = center_angle_rad
         self.simulate = simulate
+        self.prev_step_count = 0
         if self.simulate:
             print(f"{self.name} is Simulated")
         self.init_pins()
@@ -73,6 +74,18 @@ class encoder:
     def _get_steering_angle_rad(self):
         angle = self.encoder.steps * self.angle_rad_per_step - self.center_angle_rad
         return angle
+
+    @check_simulate
+    def get_distance_m_since_last_call(self):
+
+        delta_steps = self.encoder.steps - self.prev_step_count
+        # zz hyperparameter
+        distance_meter_per_step = 0.05  # TODO do experimental testing to do this (can also use wheel radius and steps/rotation)
+
+        distance_meter = delta_steps * distance_meter_per_step
+
+        self.prev_step_count = self.encoder.steps
+        return distance_meter
 
     @check_simulate
     def close(self):

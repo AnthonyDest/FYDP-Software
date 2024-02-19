@@ -175,7 +175,7 @@ class Robot:
 
                 # print(f"Current State: {current_state}")
                 zzEscape += 1
-                if zzEscape > 200:
+                if zzEscape > 1200:
                     print("zzEscape")
                     current_state = state.end
 

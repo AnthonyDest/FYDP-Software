@@ -19,9 +19,16 @@ class robot_control:
         self.current_step_number = 0
         # self.steering_velocity = 0  # angle per second
         self.steering_lock_angle_rad = math.radians(30)  # rads # zz make hyperparameter
-        self.max_speed_mps = 1  # rads # zz make hyperparameter
-        self.desired_drive_velocity = 0  # meters per second, zz change to PWM?
-        self.current_drive_velocity = 0  # meters per second
+
+        self.max_speed_mps = 1  # rads # zz make hyperparameter # zz depreciated
+        self.desired_drive_velocity = (
+            0  # meters per second, zz change to PWM? # zz depreciated
+        )
+        self.current_drive_velocity = 0  # meters per second # zz depreciated
+        self.max_drive_pwm = 90  # zz make hyperparameter
+        self.desired_drive_pwm = 0
+        self.current_drive_pwm = 0
+
         self.time_at_last_update = 0
         self.timer = helper.timer()
         self.heading = helper.heading()
@@ -200,6 +207,7 @@ class robot_control:
         pass
 
     # TODO read in all sensor data
+    # zz call motor PID control here to improve polling?
     def read_in_all_sensor_data(self):
         pass
 
@@ -272,20 +280,17 @@ class robot_control:
         # self.execute_velocity()
         self.execute_drive()
 
-        # TODO use velocity x timestep to calculate distance based on encoder values
-        distance = self.current_drive_velocity / 2
-
-        # use velocity * change in elapsed time to calculate distance moved
-        # TODO replace velocity with a function that uses encoders and pose to calculate velocity
-        # zz_temp_new_velocity = 1
-        # if self.drive_velocity != zz_temp_new_velocity:
-        #     self.drive_velocity = zz_temp_new_velocity
-        time = self.timer.get_delta_time()
-        # print(time)
-        # zz time removed debugging
-        # distance = self.drive_velocity * time
-
-        # Driving Simulation (zz updating current node status)
+        # get distance from encoder steps, avg L & R (ignore wheel-slip/turning)
+        # TODO add a button for telop operation to begin turning
+        left_distance = self.left_motor_encoder.get_distance_m_since_last_call()
+        right_distance = self.right_motor_encoder.get_distance_m_since_last_call()
+        if left_distance == False:
+            # if left_distance is simulated, assume its a ratio of drive PWM
+            left_distance = self.current_drive_pwm / 100
+        if right_distance == False:
+            # if right_distance is simulated, assume its a ratio of drive PWM
+            right_distance = self.current_drive_pwm / 100
+        distance = (left_distance + right_distance) / 2
 
         # heading orientation overflow
         self.heading.current_heading += self.heading.current_steering_angle
@@ -298,11 +303,6 @@ class robot_control:
         y_dist = self.heading.get_y_component(self.heading.current_heading) * distance
         self.current_position_node.x_coord += x_dist
         self.current_position_node.y_coord += y_dist
-
-        # zz temp disable printout coords
-        # print(
-        #     f"To Coord: ({self.desired_node.x_coord}, {self.desired_node.y_coord}), C.Coord: ({self.current_position_node.x_coord:.2f}, {self.current_position_node.y_coord:.2f}), D.Heading: {self.heading.desired_heading:.2f}, C.Heading: {self.heading.current_heading:.2f}, R.Steering Angle: {self.heading.desired_steering_angle:.2f}, C.Steering Angle: {self.heading.current_steering_angle:.2f}, D.Speed: {self.desired_drive_velocity:.2f}, C.Speed: {self.current_drive_velocity:.2f}"
-        # )
 
     # TODO init PID
     def init_steering_PID(
@@ -352,6 +352,22 @@ class robot_control:
 
     def speed_robot(self, teleop_enable=False):
         """Determines how fast the robot should be driving, either from path planning or teleop"""
+        if not teleop_enable:
+            self.desired_drive_pwm = 80  # TODO update to get from the current node info
+        else:
+            # if teleop, use arrow keys to control velocity
+            self.read_arrow_keys()  # zz maybe split reading into fwd/back and left/right
+
+        # max speed PWM
+        if abs(self.desired_drive_pwm) > self.max_drive_pwm:
+            self.desired_drive_pwm = (
+                np.sign(self.desired_drive_pwm) * self.max_drive_pwm
+            )
+
+    def speed_robot_old(self, teleop_enable=False):
+        """OLD
+        Determines how fast the robot should be driving, either from path planning or teleop
+        """
         if not teleop_enable:
             self.desired_drive_velocity = 1
         else:
@@ -438,51 +454,15 @@ class robot_control:
         self.steering_motor.set_speed(0)
         self.timer.wait_seconds(2)
 
-    # TODO all low level drive commands, when function receives relative coords between two nodes
-
-    # TODO get velocity from merge sensor data, primarily use encoders and pose?
-    # zz remove simulate in param
+    # zz unnecessary abstraction
     def execute_drive(self):
+        "Execute drive commands to motor hardware, make current = desired"
 
-        speed_step = self.max_speed_mps / 10
-
-        # TODO verify reverse
-        # zz temp velocity is slow stepping
-        if self.desired_drive_velocity > self.current_drive_velocity:
-            self.current_drive_velocity += speed_step
-        elif self.desired_drive_velocity < self.current_drive_velocity:
-            self.current_drive_velocity -= speed_step
-
-        # TODO Modify simulate/real so that only simulate has distance = velocity
-        # get simulate from motor directly
-
-        # TODO replace with PID
-        """
-        Velocity ~= PWM input (temp zz)
-        map 0 - max_speed as PWM: 0-100, same for negatives's
-        send that input
-        """
-
-        # speed to send to motors:
-        pwm_value = (self.current_drive_velocity / self.max_speed_mps) * 100
-
-        # TODO enable drive motors when connected
-        self.drive_pwm(pwm_value)
-        # self.left_motor.set_speed(pwm_value)
-        # self.right_motor.set_speed(pwm_value)
-
-        # self.left_motor.set_speed(100)
+        # calls a linear ramp on drive PWM
+        self.drive_pwm(self.desired_drive_pwm)
 
     # TODO execute steering angle based on desired
     def execute_steering(self):
-
-        # TODO Modify simulate/real so that only simulate has distance = velocity
-        # if simulate:
-        #     pass
-
-        # else:  # real
-
-        # TODO replace with PID (No PID, very aggressive turning)
         """
         Steering angle input
 
@@ -557,8 +537,18 @@ class robot_control:
     # zz check desired velocity
     # zz both motors should be going the same way bc rotated 180deg & opposite side of gear
     def drive_pwm(self, desired_pwm):
-        self.left_motor.set_speed(desired_pwm)
-        self.right_motor.set_speed(desired_pwm)
+        left_pwm = self.left_motor.linear_ramp_speed(desired_pwm)
+        right_pwm = self.right_motor.linear_ramp_speed(desired_pwm)
+
+        #  if left_pwm == False:
+        #     # if left_distance is simulated, assume its a ratio of drive PWM
+        #     left_distance = self.current_drive_pwm / 100
+        # if right_distance == False:
+        #     # if right_distance is simulated, assume its a ratio of drive PWM
+        #     right_distance = self.current_drive_pwm / 100
+
+        # zz this may not work if we need to customize each motor PWM. May need maps
+        self.current_drive_pwm = np.average([left_pwm, right_pwm])
 
     # # TODO confirm conversion wraparound ok
     # def steer_angle_deg(self, angle):
@@ -578,40 +568,22 @@ class robot_control:
 
             if up_pressed:
                 print("Up arrow key pressed")
-                # give forward velocity, L R + 50%
-                # self.left_motor.speed = 50
-                # self.right_motor.speed = 50
-                self.desired_drive_velocity = 1
-
-                # self.left_motor.set_speed(50)
-                # self.right_motor.set_speed(50)
+                self.desired_drive_pwm = 80
 
             elif down_pressed:
                 print("Down arrow key pressed")
-                # give backward velocity, L R - 50%
-                # self.left_motor.speed = -50
-                # self.right_motor.speed = -50
-                self.desired_drive_velocity = -1
+                self.desired_drive_pwm = -80
             else:
-                self.desired_drive_velocity = 0
+                self.desired_drive_pwm = 0
 
             if left_pressed:
                 print("Left arrow key pressed")
-                # give left velocity, L - 25%, R + 25%
-                # self.left_motor.speed = 25
-                # self.right_motor.speed = 75
-                # self.heading.current_steering_angle = +self.steering_lock_angle_rad / 5
                 self.heading.desired_steering_angle = +self.steering_lock_angle_rad / 5
 
             elif right_pressed:
                 print("Right arrow key pressed")
-                # give right velocity, L + 25%, R - 25%
-                # self.left_motor.speed = 75
-                # self.right_motor.speed = 25
-                # self.heading.current_steering_angle = -self.steering_lock_angle_rad / 5
                 self.heading.desired_steering_angle = -self.steering_lock_angle_rad / 5
             else:
-                # self.heading.current_steering_angle = 0
                 self.heading.desired_steering_angle = 0
 
         except Exception as e:

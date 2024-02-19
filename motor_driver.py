@@ -43,20 +43,25 @@ class Motor:
         self.pwm = gpio.PWM(self.pwm_pin, 125)
         self.pwm.start(0)
 
-    @check_simulate
     def linear_ramp_speed(self, desired_pwm):
 
         delta_pwm = desired_pwm - self.current_pwm
 
+        new_pwm = 0
+
         if abs(delta_pwm) < self.pwm_step:
-            self.set_speed(desired_pwm)
+
+            new_pwm = desired_pwm
         else:
-            self.set_speed(self.current_pwm + self.pwm_step * np.sign(delta_pwm))
+            new_pwm = self.current_pwm + self.pwm_step * np.sign(delta_pwm)
+
+        self.set_speed(new_pwm)
+        return new_pwm
 
     @check_simulate
     def set_speed(self, duty_cycle):
         "CW is +, CCW is -, 0 is stop, 100 is max speed, -100 is max reverse speed, 50 is half speed, etc."
-        # limit duty cycle
+        # limit duty cycle0
         self.current_pwm = duty_cycle
         # set pins based on duty cycle
         # "Forward"
