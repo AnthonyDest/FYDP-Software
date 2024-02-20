@@ -1,5 +1,19 @@
 import math
 import time
+import numpy as np
+
+try:
+    import RPi.GPIO as gpio
+except ImportError:
+    gpio = None
+    print("RPi.GPIO not available. GPIO functionality will be disabled.")
+
+
+def is_hardware_OK():
+    if gpio is None:
+        print("Simulate not enabled, but GPIO Disabled due to import error")
+        return False
+    return True
 
 
 # contains information relating to robot current or desired kinematic state
@@ -91,9 +105,19 @@ class timer:
 
         return self.delta_time
 
+        # get change in time in seconds
+
+    def _get_delta_time(self):
+        self.delta_time = self.get_current_time() - self.start_time
+        # print(f"start_time={self.start_time}, delta_time={self.delta_time}")
+        # self.start_time = self.get_current_time()
+
+        return self.delta_time
+
     def wait_seconds(self, seconds):
         self.start_time = self.get_current_time()
-        while self.get_delta_time() < seconds:
+        while self._get_delta_time() < seconds:
+            # print(f"Waiting: {self.get_delta_time()}")
             pass
 
 
@@ -137,6 +161,7 @@ def check_simulate(func):
     def wrapper(self, *args, **kwargs):
         # print(f"Simulate: {self.simulate}")
         if self.simulate:
+            # print(f"{self.name} is Simulated")
             return False
         else:
             # Call the original function
