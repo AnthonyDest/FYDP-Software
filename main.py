@@ -110,7 +110,7 @@ class Robot:
                     # self.robot_control.steer_robot(teleop_enable=True)
 
                     if zzEscape == 1:
-                        self.robot_control.init_steering_PID(Kp=50, Ki=0, Kd=0)
+                        self.robot_control.init_steering_PID(Kp=500, Ki=2, Kd=150)
                         self.robot_control.path_planning.stop_interactive_plot()
                         print("Tuning steering PID")
                         print(
@@ -125,9 +125,11 @@ class Robot:
                     # manually steer using arrowkeys, when ready, click s to start tuning
                     # if s is pressed, we want to tune
                     if s_pressed:
-                        user_input = input(
-                            "Enter angle to steer to (+Left, -Right) or DISABLED: press Enter for default "
-                        )
+                        # user_input = input(
+                        #     "Enter angle to steer to (+Left, -Right) or DISABLED: press Enter for default "
+                        # )
+                        user_input = 50
+                        self.prev_angle = []
 
                         self.fig, self.ax = plt.subplots()
                         (self.desired_line,) = self.ax.plot(
@@ -258,11 +260,17 @@ class Robot:
 
         current_angle = np.rad2deg(self.robot_control.heading.current_steering_angle)
 
+        self.prev_angle.append(current_angle)
+
         self.robot_control.steer_PID_deg(float(desired_angle))
+
+        num_points = min(len(time_values), len(self.prev_angle))
+        time_values = time_values[:num_points]
+        prev_angle_slice = self.prev_angle[-num_points:]
 
         # Update the plot data
         self.desired_line.set_data(time_values, desired_angle)
-        self.current_line.set_data(time_values, current_angle)
+        self.current_line.set_data(time_values, prev_angle_slice)
         self.ax.set_xlim(-10 + frame / 10, 10 + frame / 10)
 
 
