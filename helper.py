@@ -101,13 +101,22 @@ class timer:
     def get_delta_time(self):
         self.delta_time = self.get_current_time() - self.start_time
         # print(f"start_time={self.start_time}, delta_time={self.delta_time}")
+        self.start_time = self.get_current_time()
+
+        return self.delta_time
+
+        # get change in time in seconds
+
+    def _get_delta_time(self):
+        self.delta_time = self.get_current_time() - self.start_time
+        # print(f"start_time={self.start_time}, delta_time={self.delta_time}")
         # self.start_time = self.get_current_time()
 
         return self.delta_time
 
     def wait_seconds(self, seconds):
         self.start_time = self.get_current_time()
-        while self.get_delta_time() < seconds:
+        while self._get_delta_time() < seconds:
             # print(f"Waiting: {self.get_delta_time()}")
             pass
 

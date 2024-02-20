@@ -11,11 +11,15 @@ class path_planning:
         self.max_steering_lock_angle_rad = 1
         self.path_width_m = 1
         self.path_overlap_m = 0.2
-        self.normal_velocity_straight_mps = 1
+        self.normal_velocity_straight_mps = 1  # zz depreciate, make in terms of PWM
         self.normal_velocity_turning_mps = 1
         # self.path = []
         self.path = helper.Path()
         self.rink_corners = None
+        self.prev_traveled_path = helper.Path()
+        # self.prev_traveled_path = (
+        #     []
+        # )  # zz make a path variable and just get the whole node?
 
     # zz perhaps input rink dimensions here
     # zz how to deal with refilling water: does generate path determine at init or insert a go to the end of rink and back when detecting water full
@@ -34,15 +38,19 @@ class path_planning:
         self.rink_corners.add_node(helper.Node(0, 0))
 
         # Plot the rink
-        self.x_rink_coords, self.y_rink_coords = zip(
-            *self.rink_corners.get_x_y_positions()
+        self.x_rink_coords, self.y_rink_coords = self.convert_path_to_plot_coords(
+            self.rink_corners
         )
+
+    def convert_path_to_plot_coords(self, path: helper.Path):
+        x_coords, y_coords = zip(*path.get_x_y_positions())
+        return x_coords, y_coords
 
     # TODO generate a path of nodes to follow
     def generate_path(self):
         # zz first generate x-y positions of all nodes
         # self.path = self.generate_path_x_y()\
-        self.generate_path_x_y()
+        self.generate_path_square_wave()
         # zz second
 
         # TODO create a map of the rink, with the path overlaid
@@ -51,7 +59,7 @@ class path_planning:
         return self.path
 
     # TODO improve path planning algorithm (better pattern, refilling, water level)
-    def generate_path_x_y(self):
+    def generate_path_square_wave(self):
         x_itr = 0
         y_itr = 0
         dir_toggle = 1
@@ -72,9 +80,10 @@ class path_planning:
 
             x_itr += 5 * dir_toggle
 
-        self.add_lookahead_radius_to_path(self.max_steering_lock_angle_rad)
+        # self.add_lookahead_radius_to_path(self.max_steering_lock_angle_rad)
         self.label_path_steps()
 
+    # not currently used
     def add_lookahead_radius_to_path(self, max_radius_radians):
         heading_simulator = helper.heading()
 
@@ -162,38 +171,90 @@ class path_planning:
         if not wait:
             plt.show()
 
-    # TODO use matplotlib, plot robot trajectory on path. Use map and path (truncate passed nodes?)
-    # currently just plot current location
-    def plot_robot(self, current_position_node, show_rink=False):
-        existing_labels = [line.get_label() for line in plt.gca().get_children()]
-        label_to_check = "Rink Border"
-
-        if show_rink and not label_to_check in existing_labels:
-            self.plot_rink_border(wait=True)
+    def plot_robot_init(self, current_position_node, show_rink=False):
+        self.figure, self.ax = plt.subplots()
 
         x_coords, y_coords = (
             current_position_node.x_coord,
             current_position_node.y_coord,
         )
 
-        plt.plot(
+        (self.current_position_plot,) = self.ax.plot(
             x_coords,
             y_coords,
             marker="o",
             color="red",
+            label="Current Position",
             zorder=10,
         )
-        plt.title("Robot Current Position")
-        plt.xlabel("X-coordinate")
-        plt.ylabel("Y-coordinate")
-        plt.legend()
-        plt.grid(True)
-        plt.xlim([-10, self.rink_length + 10])
-        plt.ylim([-10, self.rink_width + 10])
+
+        if show_rink:
+            (self.rink_plot,) = self.ax.plot(
+                self.x_rink_coords,
+                self.y_rink_coords,
+                marker="o",
+                linestyle="-",
+                label="Rink Border",
+            )
+
+        (self.prev_path_plot,) = self.ax.plot(
+            [],
+            [],
+            linestyle="-",
+            color="maroon",
+            label="Robot Prev Path",
+        )
+
+        self.ax.set_title("Robot Position and Trajectory")
+        self.ax.set_xlabel("X-coordinate")
+        self.ax.set_ylabel("Y-coordinate")
+        self.ax.legend()
+        self.ax.grid(True)
+        self.ax.set_xlim([-10, self.rink_length + 10])
+        self.ax.set_ylim([-10, self.rink_width + 10])
 
         plt.ion()
 
-        plt.pause(0.001)
+    # TODO use matplotlib, plot robot trajectory on path. Use map and path (truncate passed nodes?)
+    # currently just plot current location
+    def plot_robot(self, current_position_node):
+
+        x_coords, y_coords = (
+            current_position_node.x_coord,
+            current_position_node.y_coord,
+        )
+
+        self.current_position_plot.set_data(x_coords, y_coords)
+
+        self.prev_traveled_path.add_node(helper.Node(x_coords, y_coords))
+
+        # self.prev_traveled_path.add_node(helper.Node(33, 44))
+
+        x_traveled, y_traveled = zip(*self.prev_traveled_path.get_x_y_positions())
+
+        self.prev_path_plot.set_data(x_traveled, y_traveled)
+
+        # self.rink_plot.set_data(self.x_rink_coords, self.y_rink_coords)
+
+        # Use scatter for dynamically updating the path
+        # self.prev_path_plot.set_offsets(list(zip(x_traveled, y_traveled)))
+
+        # x_traveled, y_traveled = zip(*self.prev_traveled_path.get_x_y_positions())
+        # # tu = (x_traveled, y_traveled)
+        # # print(tu)
+        # print(self.prev_traveled_path.print_path())
+        # self.prev_path_plot.set_data(5, 10)
+
+        # x_traveled, y_traveled = self.convert_path_to_plot_coords(
+        #     self.prev_traveled_path
+        # )
+
+        # self.prev_path_plot.set_data(x_traveled, y_traveled)
+        # self.prev_path_plot.set_xdata(5)
+        # self.prev_path_plot.set_ydata(10)
+
+        plt.pause(0.00000001)
+        # plt.show()
 
     def stop_interactive_plot(self):
         plt.ioff()

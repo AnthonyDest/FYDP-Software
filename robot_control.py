@@ -46,6 +46,13 @@ class robot_control:
         self.initialize_path_planning()
         self.initialize_hardware(simulate_all)
 
+        # # zz speedup path for testing
+        # self.path_planning.path.nodes = self.path_planning.path.nodes[10:]
+        # print(
+        #     f" X: {self.path_planning.path.nodes[0].x_coord}, Y: {self.path_planning.path.nodes[0].y_coord}"
+        # )
+        # # self.current_position_node.x_coord = self.path_planning.path.nodes[0].x_coord
+
     def initialize_image_processing(self):
         self.image_processing = image_processing.image_processing()
 
@@ -106,7 +113,7 @@ class robot_control:
 
         # TODO make all hyperparameter
 
-        # initalize limit switch
+        # initialize limit switch
 
         self.left_limit_switch = limit_switch.limit_switch(
             LEFT_LIMIT_SWITCH_PIN,
@@ -119,7 +126,7 @@ class robot_control:
             simulate=simulate_right_limit_switch,
         )
 
-        # initalize motors
+        # initialize motors
 
         self.steering_motor = motor_driver.Motor(
             pwm_pin=STEERING_MOTOR_PWM_PIN,
@@ -248,11 +255,14 @@ class robot_control:
         self.desired_node = self.path_planning.path.nodes[self.current_step_number]
         return True
 
+    def plot_robot_position_init(self):
+        self.path_planning.plot_robot_init(self.current_position_node, show_rink=True)
+
     def plot_robot_position(self, printout=False):
-        self.path_planning.plot_robot(self.current_position_node, show_rink=True)
+        self.path_planning.plot_robot(self.current_position_node)
         if printout:
             print(
-                f"To Coord: ({self.desired_node.x_coord}, {self.desired_node.y_coord}), C.Coord: ({self.current_position_node.x_coord:.2f}, {self.current_position_node.y_coord:.2f}), D.Heading: {self.heading.desired_heading:.2f}, C.Heading: {self.heading.current_heading:.2f}, R.Steering Angle: {self.heading.desired_steering_angle:.2f}, C.Steering Angle: {self.heading.current_steering_angle:.2f}, D.Speed: {self.desired_drive_velocity:.2f}, C.Speed: {self.current_drive_velocity:.2f}"
+                f"To Coord: ({self.desired_node.x_coord}, {self.desired_node.y_coord}), C.Coord: ({self.current_position_node.x_coord:.2f}, {self.current_position_node.y_coord:.2f}), D.Heading: {self.heading.desired_heading:.2f}, C.Heading: {self.heading.current_heading:.2f}, D.Steering Angle: {self.heading.desired_steering_angle:.2f}, C.Steering Angle: {self.heading.current_steering_angle:.2f}, D.Speed: {self.desired_drive_velocity:.2f}, C.Speed: {self.current_drive_velocity:.2f}"
             )
 
     def reset_timer(self):
@@ -291,13 +301,29 @@ class robot_control:
             # if right_distance is simulated, assume its a ratio of drive PWM
             right_distance = self.current_drive_pwm / 100
         distance = (left_distance + right_distance) / 2
+        # print(f"Distance: {distance}")
 
         # heading orientation overflow
+        zz_was_caught = False
         self.heading.current_heading += self.heading.current_steering_angle
         if abs(self.heading.current_heading) > np.pi:
+            zz_was_caught = True
             self.heading.current_heading -= (
                 np.sign(self.heading.current_heading) * 2 * np.pi
             )
+
+            # self.heading.current_heading %= 2 * np.pi
+            # self.heading.current_heading %= 2 * np.pi
+            # if self.heading.current_heading > np.pi:
+            #     self.heading.current_heading -= 2 * np.pi
+            # elif self.heading.current_heading < -np.pi:
+            #     self.heading.current_heading += 2 * np.pi
+            zz_was_caught = True
+
+        # if abs(self.heading.current_heading) > 20:
+        #     print(
+        #         f"ERROR: heading overflow: {self.heading.current_heading} --- IS LARGER DETECTED {abs(self.heading.current_heading) > np.pi}"
+        #     )
 
         x_dist = self.heading.get_x_component(self.heading.current_heading) * distance
         y_dist = self.heading.get_y_component(self.heading.current_heading) * distance
@@ -306,7 +332,7 @@ class robot_control:
 
     # TODO init PID
     def init_steering_PID(
-        self, Kp=10, Ki=0, Kd=0, setpoint=0, output_limits=(-100, 100)
+        self, Kp=5, Ki=0.2, Kd=2, setpoint=0, output_limits=(-100, 100)
     ):
         self._steering_pid_controller = PID(
             Kp=Kp, Ki=Ki, Kd=Kd, setpoint=setpoint, output_limits=output_limits
@@ -482,30 +508,31 @@ class robot_control:
             # self.steering_motor.set_speed(-10)
             self.steering_motor.set_speed(0)
 
-    def update_current_steering_angle(self):
+    # zz depreciated
+    # def update_current_steering_angle(self):
 
-        if self.steering_motor_encoder.simulate:
-            # zz slightly redundant
-            # zz awk, kinda simulates the delta that goes into PID, improve
-            if (
-                self.heading.desired_steering_angle
-                > self.heading.current_steering_angle
-            ):
-                self.heading.current_steering_angle += self.steering_lock_angle_rad / 3
-            elif (
-                self.heading.desired_steering_angle
-                < self.heading.current_steering_angle
-            ):
-                self.heading.current_steering_angle -= self.steering_lock_angle_rad / 3
-            else:
-                self.heading.current_steering_angle = 0
+    #     if self.steering_motor_encoder.simulate:
+    #         # zz slightly redundant
+    #         # zz awk, kinda simulates the delta that goes into PID, improve
+    #         if (
+    #             self.heading.desired_steering_angle
+    #             > self.heading.current_steering_angle
+    #         ):
+    #             self.heading.current_steering_angle += self.steering_lock_angle_rad / 3
+    #         elif (
+    #             self.heading.desired_steering_angle
+    #             < self.heading.current_steering_angle
+    #         ):
+    #             self.heading.current_steering_angle -= self.steering_lock_angle_rad / 3
+    #         else:
+    #             self.heading.current_steering_angle = 0
 
-            # return self.heading.current_steering_angle
-        else:
-            self.heading.current_steering_angle = (
-                self.steering_motor_encoder.get_steering_angle_rad()
-            )
-            # return self.steering_motor_encoder.get_steering_angle_rad()
+    #         # return self.heading.current_steering_angle
+    #     else:
+    #         self.heading.current_steering_angle = (
+    #             self.steering_motor_encoder.get_steering_angle_rad()
+    #         )
+    #         # return self.steering_motor_encoder.get_steering_angle_rad()
 
     # TODO check if this function works in polling, or if it needs to be threaded
     def steer_PID_deg(self, desired_angle):
@@ -525,10 +552,26 @@ class robot_control:
         self.steering_motor.set_speed(pid_out)
         # TODO tune PID_output speed PWM value to motor turning angle for sim
         # TODO check if this updates fast enough
-        print(f"current_angle: {current_angle}, pid_out: {pid_out}")
+        # print(f"current_angle: {current_angle}, pid_out: {pid_out}")
 
         if self.steering_motor_encoder.simulate:
-            self.heading.current_steering_angle += pid_out / 50
+
+            if pid_out != 0:
+                print(f"PID: {pid_out}")
+
+            # print(f"PID: {pid_out}")
+            simulated_steering_angle_change = pid_out * (
+                self.steering_lock_angle_rad / (2 * 100)
+            )  # 2 * 100 is [-100 -> 100] scaling -lock/2 to lock/2, will need to reduce if not using full PWM range
+            self.heading.current_steering_angle += simulated_steering_angle_change
+
+            delta_angle = desired_angle - current_angle
+            if delta_angle > 0:
+                pass
+                # self.heading.current_steering_angle += 0.2
+            # elif delta_angle < 0:
+            #     self.heading.current_steering_angle -= 0.2
+
         else:
             self.heading.current_steering_angle = (
                 self.steering_motor_encoder.get_steering_angle_rad()
@@ -614,7 +657,11 @@ class robot_control:
             if s_pressed:
                 print("S key pressed")
 
-            return s_pressed
+            q_pressed = keyboard.is_pressed("q")
+            if q_pressed:
+                print("Q key pressed")
+
+            return s_pressed, q_pressed
 
         except Exception as e:
             print(f"An error occurred: {e}")
