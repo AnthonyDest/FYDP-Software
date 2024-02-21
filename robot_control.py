@@ -332,7 +332,7 @@ class robot_control:
 
     # TODO init PID
     def init_steering_PID(
-        self, Kp=5, Ki=0.2, Kd=2, setpoint=0, output_limits=(-100, 100)
+        self, Kp=250, Ki=2, Kd=150, setpoint=0, output_limits=(-100, 100)
     ):
         self._steering_pid_controller = PID(
             Kp=Kp, Ki=Ki, Kd=Kd, setpoint=setpoint, output_limits=output_limits
@@ -556,14 +556,15 @@ class robot_control:
 
         if self.steering_motor_encoder.simulate:
 
-            if pid_out != 0:
-                print(f"PID: {pid_out}")
+            # if pid_out != 0:
+            # print(f"PID: {pid_out}")
 
             # print(f"PID: {pid_out}")
             simulated_steering_angle_change = pid_out * (
-                self.steering_lock_angle_rad / (2 * 100)
+                self.steering_lock_angle_rad / (20 * 100)
             )  # 2 * 100 is [-100 -> 100] scaling -lock/2 to lock/2, will need to reduce if not using full PWM range
             self.heading.current_steering_angle += simulated_steering_angle_change
+            # print(f"Steering Angle Change: {simulated_steering_angle_change}")
 
             delta_angle = desired_angle - current_angle
             if delta_angle > 0:
