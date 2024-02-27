@@ -43,7 +43,7 @@ class Robot:
 
             if teleop_enable_arg:
                 current_state = state.manual
-                self.robot_control.plot_robot_position(printout=printout_arg)
+                # self.robot_control.plot_robot_position(printout=printout_arg)
             elif tune_steering_arg:
                 current_state = state.tune_steering_pid
             else:
@@ -103,7 +103,7 @@ class Robot:
 
                     self.robot_control.execute_desired()
 
-                    self.robot_control.plot_robot_position(printout=printout_arg)
+                    # self.robot_control.plot_robot_position(printout=printout_arg)
 
                 elif current_state == state.tune_steering_pid:
                     """This is a temporary state to tune the steering PID controller."""
@@ -214,16 +214,16 @@ class Robot:
 
                 # print(f"Current State: {current_state}")
                 # self.robot_control.timer.wait_seconds(0.1)
-                zzEscape += 1
+                # zzEscape += 1
                 if zzEscape % 10 == 0:
                     # self.robot_control.timer.wait_seconds(0.5)
                     print(
                         f"zzEscape: {zzEscape}, time: {self.robot_control.timer.get_delta_time()}"
                     )
                     # self.robot_control.plot_robot_position(printout=printout_arg)
-                if zzEscape > 1200:
-                    print("zzEscape")
-                    current_state = state.end
+                # if zzEscape > 1200:
+                #     print("zzEscape")
+                #     current_state = state.end
 
         except KeyboardInterrupt:
             print("Exit handled")

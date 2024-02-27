@@ -70,6 +70,7 @@ class Motor:
         elif duty_cycle < 0:
             self.spin_counter_clockwise()
 
+        print(f"{self.name}: {duty_cycle}")
         duty_cycle = abs(duty_cycle)
 
         if duty_cycle < 0:
@@ -77,6 +78,7 @@ class Motor:
         elif duty_cycle > 100:
             duty_cycle = 100
 
+        
         # Set the duty cycle of the PWM signal
         self.pwm.ChangeDutyCycle(duty_cycle)
 

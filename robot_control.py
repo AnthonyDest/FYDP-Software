@@ -64,36 +64,36 @@ class robot_control:
         # zz temp config section
         # zz make hyperparameter, maybe make simulate object and clean this up
         # make below TRUE if disabled / simulated during regular run time
-        simulate_left_limit_switch = False
-        simulate_right_limit_switch = False
+        simulate_left_limit_switch = True
+        simulate_right_limit_switch = True
         simulate_steering_motor = False
         simulate_left_motor = False
         simulate_right_motor = False
-        simulate_steering_motor_encoder = False
-        simulate_left_motor_encoder = False
-        simulate_right_motor_encoder = False
+        simulate_steering_motor_encoder = True
+        simulate_left_motor_encoder = True
+        simulate_right_motor_encoder = True
 
         LEFT_LIMIT_SWITCH_PIN = 22
         RIGHT_LIMIT_SWITCH_PIN = 27
 
         STEERING_MOTOR_PWM_PIN = 8  # goes to enable
-        STEERING_MOTOR_IN1_PIN = 7
+        STEERING_MOTOR_IN1_PIN = 17
         STEERING_MOTOR_IN2_PIN = 12
 
-        LEFT_MOTOR_PWM_PIN = 18  # goes to enable
-        LEFT_MOTOR_IN1_PIN = 17
-        LEFT_MOTOR_IN2_PIN = 19
+        LEFT_MOTOR_PWM_PIN = 25  # goes to enable
+        LEFT_MOTOR_IN1_PIN = 23 
+        LEFT_MOTOR_IN2_PIN = 24
 
-        RIGHT_MOTOR_PWM_PIN = 19  # goes to enable
-        RIGHT_MOTOR_IN1_PIN = 23
-        RIGHT_MOTOR_IN2_PIN = 24
+        RIGHT_MOTOR_PWM_PIN =18  # goes to enable
+        RIGHT_MOTOR_IN1_PIN =14
+        RIGHT_MOTOR_IN2_PIN =15
 
-        STEERING_MOTOR_ENCODER_PIN_A = 25
-        STEERING_MOTOR_ENCODER_PIN_B = 26
-        LEFT_MOTOR_ENCODER_PIN_A = 5
-        LEFT_MOTOR_ENCODER_PIN_B = 6
-        RIGHT_MOTOR_ENCODER_PIN_A = 13
-        RIGHT_MOTOR_ENCODER_PIN_B = 16
+        STEERING_MOTOR_ENCODER_PIN_A = 6
+        STEERING_MOTOR_ENCODER_PIN_B = 13
+        LEFT_MOTOR_ENCODER_PIN_A = 19
+        LEFT_MOTOR_ENCODER_PIN_B = 26
+        RIGHT_MOTOR_ENCODER_PIN_A = 9
+        RIGHT_MOTOR_ENCODER_PIN_B = 10
 
         # All below should not be modified (out of temp config file)
 
@@ -284,7 +284,8 @@ class robot_control:
         If simulate = True, provide a velocity of 1"""
 
         # zz execute steering commands to motor hardware
-        self.execute_steering()
+        # self.execute_steering()
+        # self.steering_motor.linear_ramp_speed(desired_pwm)
 
         # zz execute drive commands to motor hardware
         # self.execute_velocity()
@@ -584,6 +585,9 @@ class robot_control:
         left_pwm = self.left_motor.linear_ramp_speed(desired_pwm)
         right_pwm = self.right_motor.linear_ramp_speed(desired_pwm)
 
+        # left_pwm = self.left_motor.set_speed(desired_pwm)
+        # right_pwm = self.right_motor.set_speed(desired_pwm)
+
         #  if left_pwm == False:
         #     # if left_distance is simulated, assume its a ratio of drive PWM
         #     left_distance = self.current_drive_pwm / 100
@@ -592,7 +596,7 @@ class robot_control:
         #     right_distance = self.current_drive_pwm / 100
 
         # zz this may not work if we need to customize each motor PWM. May need maps
-        self.current_drive_pwm = np.average([left_pwm, right_pwm])
+        # self.current_drive_pwm = np.average([left_pwm, right_pwm])
 
     # # TODO confirm conversion wraparound ok
     # def steer_angle_deg(self, angle):
@@ -612,23 +616,29 @@ class robot_control:
 
             if up_pressed:
                 print("Up arrow key pressed")
-                self.desired_drive_pwm = 80
+                self.desired_drive_pwm = 100
 
             elif down_pressed:
                 print("Down arrow key pressed")
-                self.desired_drive_pwm = -80
+                self.desired_drive_pwm = -100
             else:
                 self.desired_drive_pwm = 0
 
             if left_pressed:
                 print("Left arrow key pressed")
                 self.heading.desired_steering_angle = +self.steering_lock_angle_rad / 5
+                # self.steering_motor.linear_ramp_speed(80)
+                self.steering_motor.set_speed(80)
 
             elif right_pressed:
                 print("Right arrow key pressed")
                 self.heading.desired_steering_angle = -self.steering_lock_angle_rad / 5
+                # self.steering_motor.linear_ramp_speed(-80)
+                self.steering_motor.set_speed(-80)
             else:
-                self.heading.desired_steering_angle = 0
+                # self.heading.desired_steering_angle = 0
+                # self.steering_motor.linear_ramp_speed(0)
+                pass
 
         except Exception as e:
             print(f"An error occurred: {e}")
