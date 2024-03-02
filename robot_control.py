@@ -128,7 +128,7 @@ class robot_control:
 
         # initialize motors
 
-        self.steering_motor = motor_driver.Motor(
+        self.steering_motor = motor_driver.Steering_Motor(
             pwm_pin=STEERING_MOTOR_PWM_PIN,
             in_1_pin=STEERING_MOTOR_IN1_PIN,
             in_2_pin=STEERING_MOTOR_IN2_PIN,
@@ -136,7 +136,7 @@ class robot_control:
             simulate=simulate_steering_motor,
         )
 
-        self.left_motor = motor_driver.Motor(
+        self.left_motor = motor_driver.Motor_Driver(
             pwm_pin=LEFT_MOTOR_PWM_PIN,
             in_1_pin=LEFT_MOTOR_IN1_PIN,
             in_2_pin=LEFT_MOTOR_IN2_PIN,
@@ -144,7 +144,7 @@ class robot_control:
             simulate=simulate_left_motor,
         )
 
-        self.right_motor = motor_driver.Motor(
+        self.right_motor = motor_driver.Motor_Driver(
             pwm_pin=RIGHT_MOTOR_PWM_PIN,
             in_1_pin=RIGHT_MOTOR_IN1_PIN,
             in_2_pin=RIGHT_MOTOR_IN2_PIN,

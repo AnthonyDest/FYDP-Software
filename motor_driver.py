@@ -1,13 +1,13 @@
 from helper import *
 
 
-class Motor:
+class Motor_Driver:
     def __init__(
         self,
         pwm_pin,
         in_1_pin,
         in_2_pin,
-        name="No_name_motor",
+        name="No_name_motor_driver_parent",
         simulate=False,
         lowest_pwm=20,
         pwm_step=10,
@@ -109,4 +109,63 @@ class Motor:
         gpio.cleanup()
 
 
-# left_motor = Motor(LEFT_MOTOR_PWM_PIN, LEFT_MOTOR_IN1_PIN, LEFT_MOTOR_IN2_PIN)
+class Steering_Motor(Motor_Driver):
+    def __init__(
+        self,
+        pwm_pin,
+        in_1_pin,
+        in_2_pin,
+        name="No_name_steering_motor",
+        simulate=False,
+        lowest_pwm=20,
+        pwm_step=10,
+    ):
+        super().__init__(
+            pwm_pin,
+            in_1_pin,
+            in_2_pin,
+            name,
+            simulate,
+            lowest_pwm,
+            pwm_step,
+        )
+
+
+class Drive_Motor(Motor_Driver):
+    def __init__(
+        self,
+        pwm_pin,
+        in_1_pin,
+        in_2_pin,
+        name="No_name_drive_motor",
+        simulate=False,
+        lowest_pwm=20,
+        pwm_step=10,
+    ):
+        super().__init__(
+            pwm_pin, in_1_pin, in_2_pin, name, simulate, lowest_pwm, pwm_step
+        )
+
+
+class Valve(Motor_Driver):
+    def __init__(
+        self,
+        pwm_pin,
+        in_1_pin,
+        in_2_pin,
+        name="No_name_valve",
+        simulate=False,
+        lowest_pwm=20,
+        pwm_step=10,
+    ):
+        super().__init__(
+            pwm_pin, in_1_pin, in_2_pin, name, simulate, lowest_pwm, pwm_step
+        )
+
+    @check_simulate
+    def open(self):
+        pass
+
+    @check_simulate
+    def close(self):
+        pass
