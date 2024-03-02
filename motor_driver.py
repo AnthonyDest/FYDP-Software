@@ -1,13 +1,13 @@
 from helper import *
 
 
-class Motor:
+class Motor_Driver:
     def __init__(
         self,
         pwm_pin,
         in_1_pin,
         in_2_pin,
-        name="No_name_motor",
+        name="No_name_motor_driver_parent",
         simulate=False,
         lowest_pwm=20,
         pwm_step=10,
@@ -109,4 +109,83 @@ class Motor:
         gpio.cleanup()
 
 
-# left_motor = Motor(LEFT_MOTOR_PWM_PIN, LEFT_MOTOR_IN1_PIN, LEFT_MOTOR_IN2_PIN)
+class Steering_Motor(Motor_Driver):
+    def __init__(
+        self,
+        pwm_pin,
+        in_1_pin,
+        in_2_pin,
+        name="No_name_steering_motor",
+        simulate=False,
+        lowest_pwm=20,
+        pwm_step=10,
+    ):
+        super().__init__(
+            pwm_pin,
+            in_1_pin,
+            in_2_pin,
+            name,
+            simulate,
+            lowest_pwm,
+            pwm_step,
+        )
+
+
+class Drive_Motor(Motor_Driver):
+    def __init__(
+        self,
+        pwm_pin,
+        in_1_pin,
+        in_2_pin,
+        name="No_name_drive_motor",
+        simulate=False,
+        lowest_pwm=20,
+        pwm_step=10,
+    ):
+        super().__init__(
+            pwm_pin, in_1_pin, in_2_pin, name, simulate, lowest_pwm, pwm_step
+        )
+
+
+# currently not extending motor driver due to no pwm pin, zz improve
+class Valve:
+    def __init__(
+        self,
+        in_1_pin,
+        in_2_pin,
+        name="No_name_valve",
+        simulate=False,
+    ):
+
+        self.in_1 = in_1_pin
+        self.in_2 = in_2_pin
+        self.name = name
+        self.simulate = simulate
+        self.valve_is_open = False
+
+        self.init_pins()
+
+    @check_simulate
+    def init_pins(self):
+        gpio.setmode(gpio.BCM)
+        gpio.setup(self.in_1, gpio.OUT)
+        gpio.setup(self.in_2, gpio.OUT)
+
+        self.close_valve()
+
+    @check_simulate
+    def open_valve(self):
+        # zz check which way is + vs - voltage
+        gpio.output(self.in_1, gpio.HIGH)
+        gpio.output(self.in_2, gpio.LOW)
+        self.valve_is_open = True
+
+    @check_simulate
+    def close_valve(self):
+        gpio.output(self.in_1, gpio.LOW)
+        gpio.output(self.in_2, gpio.LOW)
+        self.valve_is_open = False
+
+    @check_simulate
+    def close(self):
+        gpio.cleanup()
