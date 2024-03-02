@@ -72,6 +72,7 @@ class robot_control:
         simulate_steering_motor_encoder = False
         simulate_left_motor_encoder = False
         simulate_right_motor_encoder = False
+        simulate_valve = False
 
         LEFT_LIMIT_SWITCH_PIN = 22
         RIGHT_LIMIT_SWITCH_PIN = 27
@@ -95,6 +96,9 @@ class robot_control:
         RIGHT_MOTOR_ENCODER_PIN_A = 13
         RIGHT_MOTOR_ENCODER_PIN_B = 16
 
+        VALVE_IN1_PIN = 10
+        VALVE_IN2_PIN = 10
+
         # All below should not be modified (out of temp config file)
 
         # auto simulate all if rpi.gpio is not available
@@ -110,6 +114,7 @@ class robot_control:
             simulate_steering_motor_encoder = True
             simulate_left_motor_encoder = True
             simulate_right_motor_encoder = True
+            simulate_valve = True
 
         # TODO make all hyperparameter
 
@@ -179,6 +184,13 @@ class robot_control:
             simulate=simulate_right_motor_encoder,
         )
 
+        self.valve = motor_driver.Valve(
+            in_1_pin=VALVE_IN1_PIN,
+            in_2_pin=VALVE_IN2_PIN,
+            name="valve",
+            simulate=simulate_valve,
+        )
+
         # TODO get Kp, Ki, Kd values from tuning
         self.init_steering_PID()
 
@@ -197,6 +209,7 @@ class robot_control:
         self.steering_motor_encoder.close()
         self.left_motor_encoder.close()
         self.right_motor_encoder.close()
+        self.valve.close()
 
     # TODO drive to a node, calculate relative coords
     def drive_to_node(self, node: helper.Node):
