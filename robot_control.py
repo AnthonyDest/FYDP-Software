@@ -35,6 +35,7 @@ class robot_control:
         self.steering_motor = None
         self.left_motor = None
         self.right_motor = None
+        self._internal_drive_pwm = 100
 
     # zz depreciated
     def initialize_modules_pass_objs(self, image_processing, path_planning):
@@ -370,7 +371,8 @@ class robot_control:
             )
         # else desired input is called via teleop
         else:
-            self.read_arrow_keys()
+            # self.read_arrow_keys()
+            self.full_teleop_keyboard()
 
         # once you get desired steering angle, verify its within range
 
@@ -679,3 +681,82 @@ class robot_control:
 
         except Exception as e:
             print(f"An error occurred: {e}")
+
+    def full_teleop_keyboard(self):
+        """
+        - Arrow keys drive robot
+        - Q is close graph/exit (not needed?)
+        - F is speed up by 20% pwm, G is slow down by 20% pwm
+        - V is valve open, B is valve close
+        - E is set steering left position, R is set steering right position
+        """
+        try:
+            # Check for each arrow key independently
+            drive_fwd = keyboard.is_pressed("up")
+            drive_bwd = keyboard.is_pressed("down")
+            steer_left = keyboard.is_pressed("left")
+            steer_right = keyboard.is_pressed("right")
+
+            close_control = keyboard.is_pressed("q")
+            speed_up = keyboard.is_pressed("f")
+            slow_down = keyboard.is_pressed("g")
+            open_valve = keyboard.is_pressed("v")
+            close_valve = keyboard.is_pressed("b")
+            set_steering_left = keyboard.is_pressed("e")
+            set_steering_right = keyboard.is_pressed("r")
+
+            # for drive and steering
+            if drive_fwd:
+                self.desired_drive_pwm = self._internal_drive_pwm
+            elif drive_bwd:
+                self.desired_drive_pwm = -self._internal_drive_pwm
+            else:
+                self.desired_drive_pwm = 0
+
+            if speed_up:
+                self._internal_drive_pwm += 20
+                min(self._internal_drive_pwm, 100)
+                print(f"Increased speed, currently: {self._internal_drive_pwm}")
+            elif slow_down:
+                self._internal_drive_pwm -= 20
+                max(self._internal_drive_pwm, 0)
+                print(f"Decreased speed, currently: {self._internal_drive_pwm}")
+
+            # zz check + vs - for steering
+            if steer_left:
+                self.heading.desired_steering_angle = +self.steering_lock_angle_rad / 50
+                # self.heading.desired_steering_angle = self.steering_lock_angle_rad / 5
+            elif steer_right:
+                self.heading.desired_steering_angle = -self.steering_lock_angle_rad / 50
+                # self.heading.desired_steering_angle = -self.steering_lock_angle_rad / 5
+            else:
+                self.heading.desired_steering_angle = 0
+
+            # homing steering (right is 0, left is max)
+            # zz if calling redo right, might need to offset the left motor max
+            if set_steering_right:
+                self.steering_motor_encoder.home_right()
+                print(f"Right Homed at {self.steering_motor_encoder.get_steps()} steps")
+            elif set_steering_left:
+                self.steering_motor_encoder.home_left()
+                print(f"Left Homed at {self.steering_motor_encoder.get_steps()} steps")
+
+            # for valve, zz will this keep valve open if not held
+            if open_valve:
+                self.valve.open_valve()
+                print("Valve Opened")
+            elif close_valve:
+                self.valve.close_valve()
+                print("Valve Closed")
+
+            if close_control:
+                # return False
+                self.robot_control.path_planning.stop_interactive_plot()
+                self.robot_control.close_modules()
+                return False
+
+            return True
+
+        except Exception as e:
+            print(f"An error occurred: {e}")
+            return False

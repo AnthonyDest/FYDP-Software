@@ -9,5 +9,5 @@ class state(Enum):
     travel_to_path = auto()
     end = auto()
     manual = auto()
-    teleop = auto()
+    t
     tune_steering_pid = auto()

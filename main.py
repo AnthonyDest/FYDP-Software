@@ -42,13 +42,13 @@ class Robot:
             state = states.state
 
             if teleop_enable_arg:
-                current_state = state.manual
-                self.robot_control.plot_robot_position(printout=printout_arg)
+                current_state = state.teleop
+                self.robot_control.plot_robot_position_init()
             elif tune_steering_arg:
                 current_state = state.tune_steering_pid
             else:
                 # self.robot_control.plot_robot_position(printout=printout_arg)
-                self.robot_control.plot_robot_position_init()
+
                 current_state = state.initialization
 
             self.robot_control.reset_timer()
@@ -117,7 +117,7 @@ class Robot:
                             f"Current steering PID: P: {self.robot_control._steering_pid_controller.Kp} I: {self.robot_control._steering_pid_controller.Ki} D: {self.robot_control._steering_pid_controller.Kd}"
                         )
 
-                    s_pressed, q_pressed = self.robot_control._testing_read_arrow_keys()
+                    s_pressed, q_pressed = self.robot_control.read_teleop_keyboard()
                     self.robot_control.execute_desired()
 
                     # self._steering_pid_controller = PID(Kp=10, Ki=0, Kd=0, setpoint=0, output_limits=(-100, 100))
@@ -205,22 +205,32 @@ class Robot:
                     self.robot_control.close_modules()
                     break
 
+                elif current_state == state.teleop:
+                    # self.robot_control.steer_robot(teleop_enable=True)
+
+                    self.robot_control.steer_robot(teleop_enable=teleop_enable_arg)
+
+                    self.robot_control.execute_desired()
+
+                    self.robot_control.plot_robot_position(printout=printout_arg)
+
                 else:
                     pass
 
-                _, q_pressed = self.robot_control._testing_read_arrow_keys()
-                if q_pressed:
-                    current_state = state.end
+                # zz move?
+                # _, q_pressed = self.robot_control._testing_read_arrow_keys()
+                # if q_pressed:
+                #     current_state = state.end
 
                 # print(f"Current State: {current_state}")
                 # self.robot_control.timer.wait_seconds(0.1)
-                zzEscape += 1
-                if zzEscape % 10 == 0:
-                    # self.robot_control.timer.wait_seconds(0.5)
-                    print(
-                        f"zzEscape: {zzEscape}, time: {self.robot_control.timer.get_delta_time()}"
-                    )
-                    # self.robot_control.plot_robot_position(printout=printout_arg)
+                # zzEscape += 1
+                # if zzEscape % 10 == 0:
+                #     # self.robot_control.timer.wait_seconds(0.5)
+                #     print(
+                #         f"zzEscape: {zzEscape}, time: {self.robot_control.timer.get_delta_time()}"
+                #     )
+                # self.robot_control.plot_robot_position(printout=printout_arg)
                 if zzEscape > 1200:
                     print("zzEscape")
                     current_state = state.end
