@@ -65,8 +65,8 @@ class robot_control:
         # zz temp config section
         # zz make hyperparameter, maybe make simulate object and clean this up
         # make below TRUE if disabled / simulated during regular run time
-        simulate_left_limit_switch = False
-        simulate_right_limit_switch = False
+        simulate_left_limit_switch = True
+        simulate_right_limit_switch = True
         simulate_steering_motor = False
         simulate_left_motor = False
         simulate_right_motor = False
@@ -78,27 +78,27 @@ class robot_control:
         LEFT_LIMIT_SWITCH_PIN = 22
         RIGHT_LIMIT_SWITCH_PIN = 27
 
-        STEERING_MOTOR_PWM_PIN = 8  # goes to enable
-        STEERING_MOTOR_IN1_PIN = 7
-        STEERING_MOTOR_IN2_PIN = 12
+        STEERING_MOTOR_PWM_PIN = 14  # goes to enable
+        STEERING_MOTOR_IN1_PIN = 15
+        STEERING_MOTOR_IN2_PIN = 18
 
-        LEFT_MOTOR_PWM_PIN = 18  # goes to enable
-        LEFT_MOTOR_IN1_PIN = 17
-        LEFT_MOTOR_IN2_PIN = 19
+        LEFT_MOTOR_PWM_PIN = 21  # goes to enable
+        LEFT_MOTOR_IN1_PIN = 16
+        LEFT_MOTOR_IN2_PIN = 20
 
-        RIGHT_MOTOR_PWM_PIN = 19  # goes to enable
-        RIGHT_MOTOR_IN1_PIN = 23
-        RIGHT_MOTOR_IN2_PIN = 24
+        RIGHT_MOTOR_PWM_PIN = 8  # goes to enable
+        RIGHT_MOTOR_IN1_PIN = 7
+        RIGHT_MOTOR_IN2_PIN = 12
 
-        STEERING_MOTOR_ENCODER_PIN_A = 25
+        STEERING_MOTOR_ENCODER_PIN_A = 19
         STEERING_MOTOR_ENCODER_PIN_B = 26
-        LEFT_MOTOR_ENCODER_PIN_A = 5
-        LEFT_MOTOR_ENCODER_PIN_B = 6
-        RIGHT_MOTOR_ENCODER_PIN_A = 13
-        RIGHT_MOTOR_ENCODER_PIN_B = 16
+        LEFT_MOTOR_ENCODER_PIN_A = 10
+        LEFT_MOTOR_ENCODER_PIN_B = 9
+        RIGHT_MOTOR_ENCODER_PIN_A = 6
+        RIGHT_MOTOR_ENCODER_PIN_B = 13
 
-        VALVE_IN1_PIN = 10
-        VALVE_IN2_PIN = 10
+        VALVE_IN1_PIN = 23
+        VALVE_IN2_PIN = 24
 
         # All below should not be modified (out of temp config file)
 
@@ -513,6 +513,7 @@ class robot_control:
         """
 
         self.steer_PID_rad(self.heading.desired_steering_angle)
+        # zz check steer if broken encoders
 
         # TODO have better steering corrections (steer back on path)
         # Preventing Oversteer
