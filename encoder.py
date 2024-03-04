@@ -15,6 +15,8 @@ class encoder:
         self.center_angle_rad = center_angle_rad
         self.simulate = simulate
         self.prev_step_count = 0
+        self.center_angle_rad = 0.1
+        self.angle_rad_per_step = 0.1
         if self.simulate:
             print(f"{self.name} is Simulated")
         self.init_pins()
@@ -89,7 +91,7 @@ class encoder:
 
     @check_simulate
     def close(self):
-        self.contact_pin.stop()
+        # self.contact_pin.stop()
         self.pin_A.stop()
         self.pin_B.stop()
         gpio.cleanup()

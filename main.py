@@ -1,5 +1,6 @@
 import sys
 import argparse
+from time import sleep
 
 from matplotlib import pyplot as plt
 from matplotlib.animation import FuncAnimation
@@ -208,11 +209,22 @@ class Robot:
                 elif current_state == state.teleop:
                     # self.robot_control.steer_robot(teleop_enable=True)
 
-                    self.robot_control.steer_robot(teleop_enable=teleop_enable_arg)
+                    # self.robot_control.steer_robot(teleop_enable=teleop_enable_arg)
 
-                    self.robot_control.execute_desired()
+                    # self.robot_control.execute_desired()
+                    # self.robot_control.drive_pwm(80)
+                    # self.robot_control.close_modules()
+                    # current_state = state.end
+                    self.robot_control.right_motor.set_speed(100)
+                    self.robot_control.left_motor.set_speed(100)
+                    self.robot_control.steering_motor.set_speed(100)
 
-                    self.robot_control.plot_robot_position(printout=printout_arg)
+                    print("Start")
+                    sleep(10)
+                    print("end")
+                    current_state = state.end
+
+                    # self.robot_control.plot_robot_position(printout=printout_arg)
 
                 else:
                     pass
@@ -231,7 +243,7 @@ class Robot:
                 #         f"zzEscape: {zzEscape}, time: {self.robot_control.timer.get_delta_time()}"
                 #     )
                 # self.robot_control.plot_robot_position(printout=printout_arg)
-                if zzEscape > 1200:
+                if zzEscape > 120000:
                     print("zzEscape")
                     current_state = state.end
 

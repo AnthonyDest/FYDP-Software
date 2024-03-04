@@ -70,10 +70,10 @@ class robot_control:
         simulate_steering_motor = False
         simulate_left_motor = False
         simulate_right_motor = False
-        simulate_steering_motor_encoder = False
-        simulate_left_motor_encoder = False
-        simulate_right_motor_encoder = False
-        simulate_valve = False
+        simulate_steering_motor_encoder = True
+        simulate_left_motor_encoder = True
+        simulate_right_motor_encoder = True
+        simulate_valve = True
 
         LEFT_LIMIT_SWITCH_PIN = 22
         RIGHT_LIMIT_SWITCH_PIN = 27
@@ -167,7 +167,7 @@ class robot_control:
             STEERING_MOTOR_ENCODER_PIN_A,
             STEERING_MOTOR_ENCODER_PIN_B,
             name="steering_motor_encoder",
-            simulate=simulate_steering_motor_encoder,
+            simulate=True,
             center_angle_rad=self.steering_lock_angle_rad,
         )
 
@@ -175,14 +175,14 @@ class robot_control:
             LEFT_MOTOR_ENCODER_PIN_A,
             LEFT_MOTOR_ENCODER_PIN_B,
             name="left_motor_encoder",
-            simulate=simulate_left_motor_encoder,
+            simulate=True,
         )
 
         self.right_motor_encoder = encoder.encoder(
             RIGHT_MOTOR_ENCODER_PIN_A,
             RIGHT_MOTOR_ENCODER_PIN_B,
             name="right_motor_encoder",
-            simulate=simulate_right_motor_encoder,
+            simulate=True,
         )
 
         self.valve = motor_driver.Valve(
