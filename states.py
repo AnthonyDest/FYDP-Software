@@ -11,3 +11,4 @@ class state(Enum):
     manual = auto()
     teleop = auto()
     tune_steering_pid = auto()
+    test = auto()

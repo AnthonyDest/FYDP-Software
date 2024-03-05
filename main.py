@@ -47,6 +47,8 @@ class Robot:
                 self.robot_control.plot_robot_position_init()
             elif tune_steering_arg:
                 current_state = state.tune_steering_pid
+            elif test_arg:
+                current_state = state.test
             else:
                 # self.robot_control.plot_robot_position(printout=printout_arg)
 
@@ -209,12 +211,17 @@ class Robot:
                 elif current_state == state.teleop:
                     # self.robot_control.steer_robot(teleop_enable=True)
 
-                    # self.robot_control.steer_robot(teleop_enable=teleop_enable_arg)
+                    self.robot_control.steer_robot(teleop_enable=teleop_enable_arg)
 
-                    # self.robot_control.execute_desired()
+                    self.robot_control.execute_desired()
                     # self.robot_control.drive_pwm(80)
                     # self.robot_control.close_modules()
                     # current_state = state.end
+
+                    # self.robot_control.plot_robot_position(printout=printout_arg)
+
+                elif current_state == state.test:
+
                     self.robot_control.right_motor.set_speed(100)
                     self.robot_control.left_motor.set_speed(100)
                     self.robot_control.steering_motor.set_speed(100)
@@ -223,8 +230,6 @@ class Robot:
                     sleep(10)
                     print("end")
                     current_state = state.end
-
-                    # self.robot_control.plot_robot_position(printout=printout_arg)
 
                 else:
                     pass
@@ -314,7 +319,7 @@ if __name__ == "__main__":
         "--tune-steer", action="store_true", help="Tune the steering PID"
     )
     parser.add_argument("--fstart", action="store_true", help="Skip start of path")
-
+    parser.add_argument("--test", action="store_true", help="Enable testing state")
 try:
     cli = parser.parse_args()
 
@@ -324,6 +329,7 @@ try:
     printout_arg = cli.printout
     tune_steering_arg = cli.tune_steer
     speedup_arg = cli.fstart
+    test_arg = cli.test
 
     # zz temp auto enable simulate for testing convenience
     # TODO perhaps if gpio is not available, auto implement then auto enable simulate

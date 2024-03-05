@@ -1,4 +1,5 @@
 import math
+from time import sleep
 import keyboard
 import numpy as np
 from simple_pid import PID
@@ -36,6 +37,7 @@ class robot_control:
         self.left_motor = None
         self.right_motor = None
         self._internal_drive_pwm = 100
+        self._encoder_steering = False
 
     # zz depreciated
     def initialize_modules_pass_objs(self, image_processing, path_planning):
@@ -698,6 +700,15 @@ class robot_control:
             steer_left = keyboard.is_pressed("left")
             steer_right = keyboard.is_pressed("right")
 
+            toggle_steering = keyboard.is_pressed("t")
+
+            step_steer_left = keyboard.is_pressed("j")
+            step_steer_right = keyboard.is_pressed("k")
+            slow_steer_left = keyboard.is_pressed("n")
+            slow_steer_right = keyboard.is_pressed("m")
+            fast_steer_left = keyboard.is_pressed("u")
+            fast_steer_right = keyboard.is_pressed("i")
+
             close_control = keyboard.is_pressed("q")
             speed_up = keyboard.is_pressed("f")
             slow_down = keyboard.is_pressed("g")
@@ -724,14 +735,40 @@ class robot_control:
                 print(f"Decreased speed, currently: {self._internal_drive_pwm}")
 
             # zz check + vs - for steering
-            if steer_left:
-                self.heading.desired_steering_angle = +self.steering_lock_angle_rad / 50
-                # self.heading.desired_steering_angle = self.steering_lock_angle_rad / 5
-            elif steer_right:
-                self.heading.desired_steering_angle = -self.steering_lock_angle_rad / 50
-                # self.heading.desired_steering_angle = -self.steering_lock_angle_rad / 5
+            if toggle_steering:
+                self._encoder_steering = not self._encoder_steering
+                print(f"-------Encoder steering: {self._encoder_steering} -------")
+
+            if self._encoder_steering:
+                if steer_left:
+                    self.heading.desired_steering_angle = (
+                        +self.steering_lock_angle_rad / 50
+                    )
+                    # self.heading.desired_steering_angle = self.steering_lock_angle_rad / 5
+                elif steer_right:
+                    self.heading.desired_steering_angle = (
+                        -self.steering_lock_angle_rad / 50
+                    )
+                    # self.heading.desired_steering_angle = -self.steering_lock_angle_rad / 5
+                else:
+                    self.heading.desired_steering_angle = 0
             else:
-                self.heading.desired_steering_angle = 0
+                if step_steer_left:
+                    self.steering_motor.set_speed(40)
+                    sleep(0.5)
+                elif step_steer_right:
+                    self.steering_motor.set_speed(-40)
+                    sleep(0.5)
+                elif slow_steer_left:
+                    self.steering_motor.set_speed(20)
+                elif slow_steer_right:
+                    self.steering_motor.set_speed(-20)
+                elif fast_steer_left:
+                    self.steering_motor.set_speed(60)
+                elif fast_steer_right:
+                    self.steering_motor.set_speed(-60)
+                else:
+                    self.steering_motor.set_speed(0)
 
             # homing steering (right is 0, left is max)
             # zz if calling redo right, might need to offset the left motor max
