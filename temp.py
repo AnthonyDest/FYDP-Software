@@ -5,27 +5,29 @@ from time import sleep
 
 gpio.setmode(gpio.BCM)
 
-LEFT_MOTOR_PWM_PIN = 8 # goes to enable
-LEFT_MOTOR_IN1_PIN = 7
-LEFT_MOTOR_IN2_PIN = 12
+MOTOR_PWM_PIN = 25 # goes to enable
+MOTOR_IN1_PIN = 23
+MOTOR_IN2_PIN = 24
 
 # gpio.setup(self.pwm_pin, gpio.OUT)
-gpio.setup(LEFT_MOTOR_IN1_PIN, gpio.OUT)
-gpio.setup(LEFT_MOTOR_IN2_PIN, gpio.OUT)
-gpio.setup(LEFT_MOTOR_PWM_PIN, gpio.OUT)
+gpio.setup(MOTOR_IN1_PIN, gpio.OUT)
+gpio.setup(MOTOR_IN2_PIN, gpio.OUT)
+gpio.setup(MOTOR_PWM_PIN, gpio.OUT)
 
 
-p=gpio.PWM(LEFT_MOTOR_PWM_PIN,1000)
+p=gpio.PWM(MOTOR_PWM_PIN,125)
 p.start(0)
 # initalize to forward
-gpio.output(LEFT_MOTOR_IN1_PIN,gpio.HIGH)
-gpio.output(LEFT_MOTOR_IN2_PIN,gpio.LOW)
+gpio.output(MOTOR_IN1_PIN,gpio.HIGH)
+gpio.output(MOTOR_IN2_PIN,gpio.LOW)
 print("Setup")
-p.start(50)
+
 sleep(1)
-# current_time = t
 print("RUN")
-sleep(5)
+p.start(80)
+# current_time = t
+
+sleep(3)
 
 # while True:
 #     print("RUN")

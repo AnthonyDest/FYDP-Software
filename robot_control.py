@@ -36,7 +36,7 @@ class robot_control:
         self.steering_motor = None
         self.left_motor = None
         self.right_motor = None
-        self._internal_drive_pwm = 100
+        self._internal_drive_pwm = 40
         self._encoder_steering = False
 
     # zz depreciated
@@ -80,17 +80,17 @@ class robot_control:
         LEFT_LIMIT_SWITCH_PIN = 22
         RIGHT_LIMIT_SWITCH_PIN = 27
 
-        STEERING_MOTOR_PWM_PIN = 14  # goes to enable
-        STEERING_MOTOR_IN1_PIN = 15
-        STEERING_MOTOR_IN2_PIN = 18
+        STEERING_MOTOR_PWM_PIN = 8  # goes to enable
+        STEERING_MOTOR_IN1_PIN = 12
+        STEERING_MOTOR_IN2_PIN = 7
 
-        LEFT_MOTOR_PWM_PIN = 21  # goes to enable
-        LEFT_MOTOR_IN1_PIN = 16
-        LEFT_MOTOR_IN2_PIN = 20
+        LEFT_MOTOR_PWM_PIN = 23  # goes to enable
+        LEFT_MOTOR_IN1_PIN = 25
+        LEFT_MOTOR_IN2_PIN = 24
 
-        RIGHT_MOTOR_PWM_PIN = 8  # goes to enable
-        RIGHT_MOTOR_IN1_PIN = 7
-        RIGHT_MOTOR_IN2_PIN = 12
+        RIGHT_MOTOR_PWM_PIN = 14  # goes to enable
+        RIGHT_MOTOR_IN1_PIN = 15
+        RIGHT_MOTOR_IN2_PIN = 18
 
         STEERING_MOTOR_ENCODER_PIN_A = 19
         STEERING_MOTOR_ENCODER_PIN_B = 26
@@ -300,7 +300,7 @@ class robot_control:
         If simulate = True, provide a velocity of 1"""
 
         # zz execute steering commands to motor hardware
-        self.execute_steering()
+        # self.execute_steering()
 
         # zz execute drive commands to motor hardware
         # self.execute_velocity()
@@ -697,15 +697,20 @@ class robot_control:
             # Check for each arrow key independently
             drive_fwd = keyboard.is_pressed("up")
             drive_bwd = keyboard.is_pressed("down")
-            steer_left = keyboard.is_pressed("left")
-            steer_right = keyboard.is_pressed("right")
+            # steer_left = keyboard.is_pressed("left")
+            # steer_right = keyboard.is_pressed("right")
+
+            steer_left = keyboard.is_pressed("n")
+            steer_right = keyboard.is_pressed("m")
+            slow_steer_left = keyboard.is_pressed("left")
+            slow_steer_right = keyboard.is_pressed("right")
 
             toggle_steering = keyboard.is_pressed("t")
 
             step_steer_left = keyboard.is_pressed("j")
             step_steer_right = keyboard.is_pressed("k")
-            slow_steer_left = keyboard.is_pressed("n")
-            slow_steer_right = keyboard.is_pressed("m")
+            # slow_steer_left = keyboard.is_pressed("n")
+            # slow_steer_right = keyboard.is_pressed("m")
             fast_steer_left = keyboard.is_pressed("u")
             fast_steer_right = keyboard.is_pressed("i")
 
@@ -727,12 +732,14 @@ class robot_control:
 
             if speed_up:
                 self._internal_drive_pwm += 20
-                min(self._internal_drive_pwm, 100)
+                self._internal_drive_pwm = min(self._internal_drive_pwm, 100)
                 print(f"Increased speed, currently: {self._internal_drive_pwm}")
+                sleep(0.5)
             elif slow_down:
                 self._internal_drive_pwm -= 20
-                max(self._internal_drive_pwm, 0)
+                self._internal_drive_pwm = max(self._internal_drive_pwm, 0)
                 print(f"Decreased speed, currently: {self._internal_drive_pwm}")
+                sleep(0.5)
 
             # zz check + vs - for steering
             if toggle_steering:
@@ -754,15 +761,15 @@ class robot_control:
                     self.heading.desired_steering_angle = 0
             else:
                 if step_steer_left:
-                    self.steering_motor.set_speed(40)
-                    sleep(0.5)
+                    self.steering_motor.set_speed(80)
+                    sleep(0.3)
                 elif step_steer_right:
-                    self.steering_motor.set_speed(-40)
-                    sleep(0.5)
+                    self.steering_motor.set_speed(-70)
+                    sleep(0.3)
                 elif slow_steer_left:
-                    self.steering_motor.set_speed(20)
+                    self.steering_motor.set_speed(70)
                 elif slow_steer_right:
-                    self.steering_motor.set_speed(-20)
+                    self.steering_motor.set_speed(-60)
                 elif fast_steer_left:
                     self.steering_motor.set_speed(60)
                 elif fast_steer_right:
@@ -789,8 +796,8 @@ class robot_control:
 
             if close_control:
                 # return False
-                self.robot_control.path_planning.stop_interactive_plot()
-                self.robot_control.close_modules()
+                self.path_planning.stop_interactive_plot()
+                self.close_modules()
                 return False
 
             return True

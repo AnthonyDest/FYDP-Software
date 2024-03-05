@@ -222,9 +222,9 @@ class Robot:
 
                 elif current_state == state.test:
 
-                    self.robot_control.right_motor.set_speed(100)
-                    self.robot_control.left_motor.set_speed(100)
-                    self.robot_control.steering_motor.set_speed(100)
+                    self.robot_control.right_motor.set_speed(50)
+                    self.robot_control.left_motor.set_speed(50)
+                    self.robot_control.steering_motor.set_speed(50)
 
                     print("Start")
                     sleep(10)
