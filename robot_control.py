@@ -80,17 +80,17 @@ class robot_control:
         LEFT_LIMIT_SWITCH_PIN = 22
         RIGHT_LIMIT_SWITCH_PIN = 27
 
-        STEERING_MOTOR_PWM_PIN = 8  # goes to enable
-        STEERING_MOTOR_IN1_PIN = 12
-        STEERING_MOTOR_IN2_PIN = 7
+        STEERING_MOTOR_PWM_PIN = 25  # goes to enable
+        STEERING_MOTOR_IN1_PIN = 23
+        STEERING_MOTOR_IN2_PIN = 24
 
-        LEFT_MOTOR_PWM_PIN = 23  # goes to enable
-        LEFT_MOTOR_IN1_PIN = 25
-        LEFT_MOTOR_IN2_PIN = 24
+        LEFT_MOTOR_PWM_PIN = 21  # goes to enable
+        LEFT_MOTOR_IN1_PIN = 16
+        LEFT_MOTOR_IN2_PIN = 20
 
-        RIGHT_MOTOR_PWM_PIN = 14  # goes to enable
-        RIGHT_MOTOR_IN1_PIN = 15
-        RIGHT_MOTOR_IN2_PIN = 18
+        RIGHT_MOTOR_PWM_PIN = 8  # goes to enable
+        RIGHT_MOTOR_IN1_PIN = 12
+        RIGHT_MOTOR_IN2_PIN = 7
 
         STEERING_MOTOR_ENCODER_PIN_A = 19
         STEERING_MOTOR_ENCODER_PIN_B = 26
