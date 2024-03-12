@@ -10,6 +10,7 @@ import path_planning
 import motor_driver
 import limit_switch
 import logging
+import tof
 
 
 class robot_control:
@@ -76,6 +77,7 @@ class robot_control:
         simulate_left_motor_encoder = True
         simulate_right_motor_encoder = True
         simulate_valve = True
+        simulate_tof = False
 
         LEFT_LIMIT_SWITCH_PIN = 22
         RIGHT_LIMIT_SWITCH_PIN = 27
@@ -195,7 +197,7 @@ class robot_control:
             simulate=simulate_valve,
         )
 
-        self.tof = None  # zz add tof
+        self.tof = tof.TOF(name = "TOF", threshold=1800, simulate=simulate_tof) # zz add tof
 
         # TODO get Kp, Ki, Kd values from tuning
         self.init_steering_PID()
@@ -808,3 +810,11 @@ class robot_control:
         except Exception as e:
             print(f"An error occurred: {e}")
             return False
+
+    def handle_obstacle_in_path(self):
+        
+        if self.tof.is_object_detected():
+            # print(f"OBJECT DETECTED AT APPROX: {self.tof.get_distance()}")
+            self.drive_pwm(0)
+            print("Press Enter once path is clear...")
+            input()  # Wait for Enter key press

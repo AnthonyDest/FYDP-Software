@@ -210,6 +210,8 @@ class Robot:
 
                 elif current_state == state.teleop:
                     # self.robot_control.steer_robot(teleop_enable=True)
+            
+                    self.robot_control.handle_obstacle_in_path()
 
                     self.robot_control.steer_robot(teleop_enable=teleop_enable_arg)
 
@@ -226,9 +228,13 @@ class Robot:
 
                 elif current_state == state.test:
 
-                    self.robot_control.right_motor.set_speed(50)
-                    self.robot_control.left_motor.set_speed(50)
-                    self.robot_control.steering_motor.set_speed(50)
+                    # self.robot_control.right_motor.set_speed(50)
+                    # self.robot_control.left_motor.set_speed(50)
+                    # self.robot_control.steering_motor.set_speed(50)
+
+                    while(True):
+                        print("simulated driving...")
+                        self.robot_control.handle_obstacle_in_path()
 
                     print("Start")
                     sleep(10)
