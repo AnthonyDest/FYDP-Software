@@ -214,6 +214,10 @@ class Robot:
                     self.robot_control.steer_robot(teleop_enable=teleop_enable_arg)
 
                     self.robot_control.execute_desired()
+
+                    # zz print encoder values (steering)
+                    self.robot_control.steering_motor_encoder.get_steps()
+
                     # self.robot_control.drive_pwm(80)
                     # self.robot_control.close_modules()
                     # current_state = state.end
