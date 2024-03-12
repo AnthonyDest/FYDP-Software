@@ -118,6 +118,7 @@ class robot_control:
             simulate_left_motor_encoder = True
             simulate_right_motor_encoder = True
             simulate_valve = True
+            simulate_tof = True
 
         # TODO make all hyperparameter
 
@@ -193,6 +194,8 @@ class robot_control:
             name="valve",
             simulate=simulate_valve,
         )
+
+        self.tof = None  # zz add tof
 
         # TODO get Kp, Ki, Kd values from tuning
         self.init_steering_PID()
