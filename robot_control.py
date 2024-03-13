@@ -805,3 +805,26 @@ class robot_control:
         except Exception as e:
             print(f"An error occurred: {e}")
             return False
+
+    def steer_to_pylon(self):
+
+        pylon_processor = image_processing.pylon_processing()
+        distance_from_center = pylon_processor.process_pylon("image", "pylon_right.jpg")
+        distance_from_center = pylon_processor.process_pylon(
+            "image", "pylon_center.jpg"
+        )
+
+        # Left positive, right negative
+        if distance_from_center < 0:
+            print("Steer right")
+            self.heading.desired_steering_angle = self.steering_lock_angle_rad / 5
+        elif distance_from_center > 0:
+            print("Steer left")
+            self.heading.desired_steering_angle = self.steering_lock_angle_rad / 5
+        elif distance_from_center == 0:
+            print("Center")
+            self.heading.desired_steering_angle = 0.0
+        else:
+            print("Error")
+
+        # pylon_processor.process_pylon("video", "")
