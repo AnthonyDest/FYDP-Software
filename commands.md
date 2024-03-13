@@ -1,5 +1,8 @@
 # Commands For Quick Reference
 
+### Run Teleop:  
+`sudo /home/fydp/Documents/FYDP-Software/fydp_venv/bin/python /home/fydp/Documents/FYDP-Software/main.py --teleop`
+
 ## Pip Environment Management
 
 ### Create a new environment:

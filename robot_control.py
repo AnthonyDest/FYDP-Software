@@ -1,4 +1,5 @@
 import math
+from time import sleep
 import keyboard
 import numpy as np
 from simple_pid import PID
@@ -35,7 +36,8 @@ class robot_control:
         self.steering_motor = None
         self.left_motor = None
         self.right_motor = None
-        self._internal_drive_pwm = 100
+        self._internal_drive_pwm = 40
+        self._encoder_steering = False
 
     # zz depreciated
     def initialize_modules_pass_objs(self, image_processing, path_planning):
@@ -70,25 +72,25 @@ class robot_control:
         simulate_steering_motor = False
         simulate_left_motor = False
         simulate_right_motor = False
-        simulate_steering_motor_encoder = False
-        simulate_left_motor_encoder = False
-        simulate_right_motor_encoder = False
-        simulate_valve = False
+        simulate_steering_motor_encoder = True
+        simulate_left_motor_encoder = True
+        simulate_right_motor_encoder = True
+        simulate_valve = True
 
         LEFT_LIMIT_SWITCH_PIN = 22
         RIGHT_LIMIT_SWITCH_PIN = 27
 
-        STEERING_MOTOR_PWM_PIN = 14  # goes to enable
-        STEERING_MOTOR_IN1_PIN = 15
-        STEERING_MOTOR_IN2_PIN = 18
+        STEERING_MOTOR_PWM_PIN = 25  # goes to enable
+        STEERING_MOTOR_IN1_PIN = 24
+        STEERING_MOTOR_IN2_PIN = 23
 
         LEFT_MOTOR_PWM_PIN = 21  # goes to enable
         LEFT_MOTOR_IN1_PIN = 16
         LEFT_MOTOR_IN2_PIN = 20
 
         RIGHT_MOTOR_PWM_PIN = 8  # goes to enable
-        RIGHT_MOTOR_IN1_PIN = 7
-        RIGHT_MOTOR_IN2_PIN = 12
+        RIGHT_MOTOR_IN1_PIN = 12
+        RIGHT_MOTOR_IN2_PIN = 7
 
         STEERING_MOTOR_ENCODER_PIN_A = 19
         STEERING_MOTOR_ENCODER_PIN_B = 26
@@ -167,7 +169,7 @@ class robot_control:
             STEERING_MOTOR_ENCODER_PIN_A,
             STEERING_MOTOR_ENCODER_PIN_B,
             name="steering_motor_encoder",
-            simulate=simulate_steering_motor_encoder,
+            simulate=True,
             center_angle_rad=self.steering_lock_angle_rad,
         )
 
@@ -175,14 +177,14 @@ class robot_control:
             LEFT_MOTOR_ENCODER_PIN_A,
             LEFT_MOTOR_ENCODER_PIN_B,
             name="left_motor_encoder",
-            simulate=simulate_left_motor_encoder,
+            simulate=True,
         )
 
         self.right_motor_encoder = encoder.encoder(
             RIGHT_MOTOR_ENCODER_PIN_A,
             RIGHT_MOTOR_ENCODER_PIN_B,
             name="right_motor_encoder",
-            simulate=simulate_right_motor_encoder,
+            simulate=True,
         )
 
         self.valve = motor_driver.Valve(
@@ -298,7 +300,7 @@ class robot_control:
         If simulate = True, provide a velocity of 1"""
 
         # zz execute steering commands to motor hardware
-        self.execute_steering()
+        # self.execute_steering()
 
         # zz execute drive commands to motor hardware
         # self.execute_velocity()
@@ -695,8 +697,22 @@ class robot_control:
             # Check for each arrow key independently
             drive_fwd = keyboard.is_pressed("up")
             drive_bwd = keyboard.is_pressed("down")
-            steer_left = keyboard.is_pressed("left")
-            steer_right = keyboard.is_pressed("right")
+            # steer_left = keyboard.is_pressed("left")
+            # steer_right = keyboard.is_pressed("right")
+
+            steer_left = keyboard.is_pressed("n")
+            steer_right = keyboard.is_pressed("m")
+            slow_steer_left = keyboard.is_pressed("left")
+            slow_steer_right = keyboard.is_pressed("right")
+
+            toggle_steering = keyboard.is_pressed("t")
+
+            step_steer_left = keyboard.is_pressed("j")
+            step_steer_right = keyboard.is_pressed("k")
+            # slow_steer_left = keyboard.is_pressed("n")
+            # slow_steer_right = keyboard.is_pressed("m")
+            fast_steer_left = keyboard.is_pressed("u")
+            fast_steer_right = keyboard.is_pressed("i")
 
             close_control = keyboard.is_pressed("q")
             speed_up = keyboard.is_pressed("f")
@@ -716,22 +732,50 @@ class robot_control:
 
             if speed_up:
                 self._internal_drive_pwm += 20
-                min(self._internal_drive_pwm, 100)
+                self._internal_drive_pwm = min(self._internal_drive_pwm, 100)
                 print(f"Increased speed, currently: {self._internal_drive_pwm}")
+                sleep(0.5)
             elif slow_down:
                 self._internal_drive_pwm -= 20
-                max(self._internal_drive_pwm, 0)
+                self._internal_drive_pwm = max(self._internal_drive_pwm, 0)
                 print(f"Decreased speed, currently: {self._internal_drive_pwm}")
+                sleep(0.5)
 
             # zz check + vs - for steering
-            if steer_left:
-                self.heading.desired_steering_angle = +self.steering_lock_angle_rad / 50
-                # self.heading.desired_steering_angle = self.steering_lock_angle_rad / 5
-            elif steer_right:
-                self.heading.desired_steering_angle = -self.steering_lock_angle_rad / 50
-                # self.heading.desired_steering_angle = -self.steering_lock_angle_rad / 5
+            if toggle_steering:
+                self._encoder_steering = not self._encoder_steering
+                print(f"-------Encoder steering: {self._encoder_steering} -------")
+
+            if self._encoder_steering:
+                if steer_left:
+                    self.heading.desired_steering_angle = (
+                        +self.steering_lock_angle_rad / 50
+                    )
+                    # self.heading.desired_steering_angle = self.steering_lock_angle_rad / 5
+                elif steer_right:
+                    self.heading.desired_steering_angle = (
+                        -self.steering_lock_angle_rad / 50
+                    )
+                    # self.heading.desired_steering_angle = -self.steering_lock_angle_rad / 5
+                else:
+                    self.heading.desired_steering_angle = 0
             else:
-                self.heading.desired_steering_angle = 0
+                if step_steer_left:
+                    self.steering_motor.set_speed(80)
+                    sleep(0.3)
+                elif step_steer_right:
+                    self.steering_motor.set_speed(-70)
+                    sleep(0.3)
+                elif slow_steer_left:
+                    self.steering_motor.set_speed(70)
+                elif slow_steer_right:
+                    self.steering_motor.set_speed(-60)
+                elif fast_steer_left:
+                    self.steering_motor.set_speed(60)
+                elif fast_steer_right:
+                    self.steering_motor.set_speed(-60)
+                else:
+                    self.steering_motor.set_speed(0)
 
             # homing steering (right is 0, left is max)
             # zz if calling redo right, might need to offset the left motor max
@@ -752,8 +796,8 @@ class robot_control:
 
             if close_control:
                 # return False
-                self.robot_control.path_planning.stop_interactive_plot()
-                self.robot_control.close_modules()
+                self.path_planning.stop_interactive_plot()
+                self.close_modules()
                 return False
 
             return True
