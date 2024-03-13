@@ -232,14 +232,16 @@ class Robot:
                     # self.robot_control.left_motor.set_speed(50)
                     # self.robot_control.steering_motor.set_speed(50)
 
-                    while(True):
-                        print("simulated driving...")
-                        self.robot_control.handle_obstacle_in_path()
+                    self.robot_control.left_limit_switch.print_contact()
 
-                    print("Start")
-                    sleep(10)
-                    print("end")
-                    current_state = state.end
+                    # while(True):
+                    #     print("simulated driving...")
+                    #     self.robot_control.handle_obstacle_in_path()
+
+                    # print("Start")
+                    # sleep(10)
+                    # print("end")
+                    # current_state = state.end
 
                 else:
                     pass

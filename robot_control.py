@@ -68,7 +68,7 @@ class robot_control:
         # zz temp config section
         # zz make hyperparameter, maybe make simulate object and clean this up
         # make below TRUE if disabled / simulated during regular run time
-        simulate_left_limit_switch = True
+        simulate_left_limit_switch = False
         simulate_right_limit_switch = True
         simulate_steering_motor = False
         simulate_left_motor = False
@@ -77,9 +77,9 @@ class robot_control:
         simulate_left_motor_encoder = True
         simulate_right_motor_encoder = True
         simulate_valve = True
-        simulate_tof = False
+        simulate_tof = True
 
-        LEFT_LIMIT_SWITCH_PIN = 22
+        LEFT_LIMIT_SWITCH_PIN = 3
         RIGHT_LIMIT_SWITCH_PIN = 27
 
         STEERING_MOTOR_PWM_PIN = 25  # goes to enable
@@ -212,12 +212,13 @@ class robot_control:
         self.steering_motor.close()
         self.left_motor.close()
         self.right_motor.close()
-        self.left_limit_switch.close()
-        self.right_limit_switch.close()
-        self.steering_motor_encoder.close()
-        self.left_motor_encoder.close()
-        self.right_motor_encoder.close()
-        self.valve.close()
+        # self.left_limit_switch.close()
+        # self.right_limit_switch.close()
+        # self.steering_motor_encoder.close()
+        # self.left_motor_encoder.close()
+        # self.right_motor_encoder.close()
+        # self.valve.close()
+        helper.cleanup_gpio()
 
     # TODO drive to a node, calculate relative coords
     def drive_to_node(self, node: helper.Node):
@@ -818,3 +819,13 @@ class robot_control:
             self.drive_pwm(0)
             print("Press Enter once path is clear...")
             input()  # Wait for Enter key press
+
+    def handle_limit_switch_press(self):
+
+        if self.left_limit_switch.is_pressed():
+            # only allow turn right
+            pass
+
+        if self.right_limit_switch.is_pressed():
+            # only allow turn left
+            pass

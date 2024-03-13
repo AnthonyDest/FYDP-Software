@@ -185,7 +185,3 @@ class Valve:
         gpio.output(self.in_1, gpio.LOW)
         gpio.output(self.in_2, gpio.LOW)
         self.valve_is_open = False
-
-    @check_simulate
-    def close(self):
-        gpio.cleanup()

@@ -89,9 +89,3 @@ class encoder:
         self.prev_step_count = self.encoder.steps
         return distance_meter
 
-    @check_simulate
-    def close(self):
-        # self.contact_pin.stop()
-        self.pin_A.stop()
-        self.pin_B.stop()
-        gpio.cleanup()
