@@ -5,6 +5,7 @@ import helper
 
 class pylon_processing:
     def __init__(self):
+        self.video_active = False
         pass
 
     # Function to read a still image
@@ -14,14 +15,17 @@ class pylon_processing:
 
     # Function to capture video from USB webcam
     def capture_video(self):
-        cap = cv2.VideoCapture(0)
+        print("Video stream loading...")
+        self.cap = cv2.VideoCapture(0)  # Use 0 for default webcam
+        self.video_active = True
+        print("Video stream ready.")
         while True:
-            ret, frame = cap.read()
+            ret, frame = self.cap.read()
             if not ret:
                 print("Error: failed to capture image")
                 break
             yield frame
-        cap.release()
+        self.cap.release()
 
     # Function to detect orange color
     def detect_orange(self, frame):
@@ -98,40 +102,42 @@ class pylon_processing:
         return distance_from_center
 
     # Function to process image or video and determine pylon position
-    def process_pylon(self, input_type, path, show_frame=False):
+    def process_pylon(self, input_type="video", path="None", show_frame=True):
         steer_severity = 0
 
         if input_type not in ["image", "video"]:
             print("Invalid input type. Choose 'image' or 'video'.")
             return
 
-        if input_type == "image":
-            frame = self.read_image(path)
-        elif input_type == "video":
-            frame = next(self.capture_video(), None)
-            if frame is None:
-                print("Error: No frame captured from the video.")
-                return
-
+        if self.video_active == False:
+            self.video_active == True
+            if input_type == "image":
+                print("INPUT SOURCE: IMAGE")
+                frame = self.read_image(path)
+            elif input_type == "video":
+                print("INPUT SOURCE: VIDEO")
+                frame = next(self.capture_video(), None)
+                if frame is None:
+                    print("Error: No frame captured from the video.")
+                    return
+        else:
+            ret, frame = self.cap.read()
         orange_position = self.detect_orange(frame)
         if orange_position is not None:
             x, y, w, h = orange_position
             self.draw_box(frame, x, y, w, h)
-            # box_position = self.compute_box_position(frame, x, w)
             distance_from_center = self.compute_distance_from_center(frame, x, w)
 
             steer_severity = self.steer_severity(
                 distance_from_center, frame.shape[1], center_tolerance=10
             )
 
-            # print(f"The pylon is on the {box_position} side of the screen.")
             print(f"The pylon is {distance_from_center} pixels away from the center.")
             print(f"Steer {steer_severity} to get to the center.")
 
         if show_frame:
             cv2.imshow("Frame", frame)
-            cv2.waitKey(0)
-            cv2.destroyAllWindows()
+            cv2.waitKey(1)  # Adjust the delay as needed
 
         return steer_severity
 

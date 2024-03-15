@@ -58,6 +58,7 @@ class robot_control:
 
     def initialize_image_processing(self):
         self.image_processing = image_processing.image_processing()
+        self.pylon_processor = image_processing.pylon_processing()
 
     # make hyperparameter
     def initialize_path_planning(self):
@@ -806,13 +807,13 @@ class robot_control:
             print(f"An error occurred: {e}")
             return False
 
-    def steer_to_pylon(self):
+    def steer_to_pylon(self, show_frame=False):
 
-        pylon_processor = image_processing.pylon_processing()
-        distance_from_center = pylon_processor.process_pylon("image", "pylon_right.jpg")
-        distance_from_center = pylon_processor.process_pylon(
-            "image", "pylon_center.jpg"
-        )
+        distance_from_center = self.pylon_processor.process_pylon(show_frame=show_frame)
+        # distance_from_center = pylon_processor.process_pylon("image", "pylon_right.jpg")
+        # distance_from_center = pylon_processor.process_pylon(
+        #     "image", "pylon_center.jpg"
+        # )
 
         # Left positive, right negative
         if distance_from_center < 0:

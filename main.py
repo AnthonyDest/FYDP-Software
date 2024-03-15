@@ -222,7 +222,7 @@ class Robot:
 
                 elif current_state == state.test:
 
-                    self.robot_control.steer_to_pylon()
+                    self.robot_control.steer_to_pylon(show_frame=True)
 
                     # self.robot_control.right_motor.set_speed(50)
                     # self.robot_control.left_motor.set_speed(50)
@@ -231,7 +231,7 @@ class Robot:
                     # print("Start")
                     # sleep(10)
                     # print("end")
-                    current_state = state.end
+                    # current_state = state.end
 
                 else:
                     pass
