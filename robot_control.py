@@ -818,7 +818,7 @@ class robot_control:
         # )
         current_time = time.time()
 
-        if current_time - self.last_if_execution_time >= 1:
+        if current_time - self.last_if_execution_time >= 0: # zz disabled
             self.last_if_execution_time = current_time
             # Left positive, right negative
             if distance_from_center < 0:

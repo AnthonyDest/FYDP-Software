@@ -16,7 +16,7 @@ class pylon_processing:
     # Function to capture video from USB webcam
     def capture_video(self):
         print("Video stream loading...")
-        self.cap = cv2.VideoCapture(1)  # Use 0 for default webcam
+        self.cap = cv2.VideoCapture(0)  # Use 0 for default webcam
         self.video_active = True
         print("Video stream ready.")
         while True:
