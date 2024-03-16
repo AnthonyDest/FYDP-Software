@@ -16,7 +16,7 @@ class pylon_processing:
     # Function to capture video from USB webcam
     def capture_video(self):
         print("Video stream loading...")
-        self.cap = cv2.VideoCapture(0)  # Use 0 for default webcam
+        self.cap = cv2.VideoCapture(1)  # Use 0 for default webcam
         self.video_active = True
         print("Video stream ready.")
         while True:
@@ -30,8 +30,8 @@ class pylon_processing:
     # Function to detect orange color
     def detect_orange(self, frame):
         hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-        lower_orange = np.array([5, 150, 100])
-        upper_orange = np.array([15, 255, 255])
+        lower_orange = np.array([105, 75, 0])
+        upper_orange = np.array([255, 255, 255])
         mask = cv2.inRange(hsv, lower_orange, upper_orange)
         contours, _ = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
         if contours:
@@ -132,8 +132,8 @@ class pylon_processing:
                 distance_from_center, frame.shape[1], center_tolerance=10
             )
 
-            print(f"The pylon is {distance_from_center} pixels away from the center.")
-            print(f"Steer {steer_severity} to get to the center.")
+            # print(f"The pylon is {distance_from_center} pixels away from the center.")
+            # print(f"Steer {steer_severity} to get to the center.")
 
         if show_frame:
             cv2.imshow("Frame", frame)

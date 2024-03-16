@@ -1,5 +1,6 @@
 import math
 from time import sleep
+import time
 import keyboard
 import numpy as np
 from simple_pid import PID
@@ -38,6 +39,7 @@ class robot_control:
         self.right_motor = None
         self._internal_drive_pwm = 40
         self._encoder_steering = False
+        self.last_if_execution_time = 0
 
     # zz depreciated
     def initialize_modules_pass_objs(self, image_processing, path_planning):
@@ -814,18 +816,24 @@ class robot_control:
         # distance_from_center = pylon_processor.process_pylon(
         #     "image", "pylon_center.jpg"
         # )
+        current_time = time.time()
 
-        # Left positive, right negative
-        if distance_from_center < 0:
-            print("Steer right")
-            self.heading.desired_steering_angle = self.steering_lock_angle_rad / 5
-        elif distance_from_center > 0:
-            print("Steer left")
-            self.heading.desired_steering_angle = self.steering_lock_angle_rad / 5
-        elif distance_from_center == 0:
-            print("Center")
-            self.heading.desired_steering_angle = 0.0
-        else:
-            print("Error")
+        if current_time - self.last_if_execution_time >= 1:
+            self.last_if_execution_time = current_time
+            # Left positive, right negative
+            if distance_from_center < 0:
+                print("Steer right")
+                self.steering_motor.set_speed(-20)
+                self.heading.desired_steering_angle = self.steering_lock_angle_rad / 5
+            elif distance_from_center > 0:
+                print("Steer left")
+                self.heading.desired_steering_angle = self.steering_lock_angle_rad / 5
+                self.steering_motor.set_speed(20)
+            elif distance_from_center == 0:
+                print("Center")
+                self.heading.desired_steering_angle = 0.0
+                self.steering_motor.set_speed(0)
+            else:
+                print("Error")
 
         # pylon_processor.process_pylon("video", "")
