@@ -45,6 +45,7 @@ class Robot:
             if teleop_enable_arg:
                 current_state = state.teleop
                 self.robot_control.plot_robot_position_init()
+                # self.robot_control.home_steering()
             elif tune_steering_arg:
                 current_state = state.tune_steering_pid
             elif test_arg:
@@ -210,10 +211,18 @@ class Robot:
 
                 elif current_state == state.teleop:
                     # self.robot_control.steer_robot(teleop_enable=True)
+            
+                    self.robot_control.handle_obstacle_in_path()
+                    self.robot_control.handle_limit_switch_press()
 
                     self.robot_control.steer_robot(teleop_enable=teleop_enable_arg)
 
                     self.robot_control.execute_desired()
+
+                    # zz print encoder values (steering)
+                    # self.robot_control.steering_motor_encoder.get_steps()
+                    # print(self.robot_control.heading.current_steering_angle)
+
                     # self.robot_control.drive_pwm(80)
                     # self.robot_control.close_modules()
                     # current_state = state.end
@@ -222,14 +231,26 @@ class Robot:
 
                 elif current_state == state.test:
 
-                    self.robot_control.right_motor.set_speed(50)
-                    self.robot_control.left_motor.set_speed(50)
-                    self.robot_control.steering_motor.set_speed(50)
+                    # self.robot_control.right_motor.set_speed(50)
+                    # self.robot_control.left_motor.set_speed(50)
+                    # self.robot_control.steering_motor.set_speed(50)
 
-                    print("Start")
-                    sleep(10)
-                    print("end")
-                    current_state = state.end
+                    self.robot_control.handle_limit_switch_press()
+                    self.robot_control.steer_robot(teleop_enable=teleop_enable_arg)
+                    self.robot_control.execute_desired()
+
+                    
+
+
+
+                    # while(True):
+                    #     print("simulated driving...")
+                    #     self.robot_control.handle_obstacle_in_path()
+
+                    # print("Start")
+                    # sleep(10)
+                    # print("end")
+                    # current_state = state.end
 
                 else:
                     pass

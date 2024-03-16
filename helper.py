@@ -15,6 +15,10 @@ def is_hardware_OK():
         return False
     return True
 
+def cleanup_gpio():
+    if is_hardware_OK:
+        gpio.cleanup()
+
 
 # contains information relating to robot current or desired kinematic state
 # [x_coord, y_coord, heading, velocity]

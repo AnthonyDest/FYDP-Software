@@ -25,6 +25,11 @@
 ### Import required packages:
 `pip install -r requirements.txt`
 
+## Git
+
+### Clean up branches:
+`git branch | %{ $_.Trim() } | ?{ $_ -ne 'master' } | ?{ $_ -ne 'main'} | ?{ $_ -ne 'develop'} | %{ git branch -D $_ }`
+
 
 ---
 Not in use:
