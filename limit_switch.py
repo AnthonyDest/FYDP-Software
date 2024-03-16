@@ -28,7 +28,7 @@ class limit_switch:
         """
         Input pins: 1 is pressed/removed, 0 is good
         """
-        self.contact_state = gpio.input(self.contact_pin)
+        self.contact_state = not gpio.input(self.contact_pin)
         return self.contact_state
 
     @check_simulate
@@ -36,5 +36,11 @@ class limit_switch:
 
         # TODO replace print pin with name
         self.is_pressed()
-        print(f"Pin {self.contact_pin} contact status: {self.contact_state}")
+        print(f"Limit switch {self.name} contact status: {self.contact_state}")
+
+    @check_simulate
+    def print_contact_if_pressed(self):
+        # TODO replace print pin with name
+        if self.is_pressed():
+            print(f"Limit switch {self.name} contact status: {self.contact_state}")
 

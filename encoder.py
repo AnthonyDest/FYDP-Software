@@ -17,6 +17,10 @@ class encoder:
         self.prev_step_count = 0
         self.center_angle_rad = 0.1
         self.angle_rad_per_step = 0.1
+
+        self.max_steering_steps = 125
+
+
         if self.simulate:
             print(f"{self.name} is Simulated")
         self.init_pins()
@@ -63,6 +67,7 @@ class encoder:
         )
 
         self.center_angle_rad = max_steering_angle_lock_rad
+        print(f"self.center_angle_rad {self.center_angle_rad}")
 
     @check_simulate
     def get_steering_angle_rad(self):
