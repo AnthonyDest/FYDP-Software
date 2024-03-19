@@ -1,5 +1,6 @@
 import math
 from time import sleep
+import time
 import keyboard
 import numpy as np
 from simple_pid import PID
@@ -41,6 +42,7 @@ class robot_control:
         self._encoder_steering = False
         self.desired_steps = 0
         self.desired_steps_enable = False
+        self.last_if_execution_time = 0
 
     # zz depreciated
     def initialize_modules_pass_objs(self, image_processing, path_planning):
@@ -61,7 +63,8 @@ class robot_control:
 
     def initialize_image_processing(self):
         self.image_processing = image_processing.image_processing()
-
+        self.pylon_processor = image_processing.pylon_processing()
+        self.pylon_processor.start_video()
     # make hyperparameter
     def initialize_path_planning(self):
         self.path_planning = path_planning.path_planning(rink_length=60, rink_width=40)
@@ -214,6 +217,7 @@ class robot_control:
         self.steering_motor.close()
         self.left_motor.close()
         self.right_motor.close()
+
         # self.left_limit_switch.close()
         # self.right_limit_switch.close()
         # self.steering_motor_encoder.close()
@@ -221,6 +225,7 @@ class robot_control:
         # self.right_motor_encoder.close()
         # self.valve.close()
         helper.cleanup_gpio()
+        self.pylon_processor.stop_recording()
 
     # TODO drive to a node, calculate relative coords
     def drive_to_node(self, node: helper.Node):
@@ -860,8 +865,9 @@ class robot_control:
 
             # for valve, zz will this keep valve open if not held
             if open_valve:
-                self.valve.open_valve()
-                print("Valve Opened")
+                self.stop_and_save_video()
+                # self.valve.open_valve()
+                # print("Valve Opened")
             elif close_valve:
                 self.valve.close_valve()
                 print("Valve Closed")
@@ -902,6 +908,7 @@ class robot_control:
             print(f"An error occurred: {e}")
             return False
 
+
     def handle_obstacle_in_path(self):
         
         if self.tof.is_object_detected():
@@ -923,3 +930,32 @@ class robot_control:
             self.steering_motor.no_steer_right = True
         else:
             self.steering_motor.no_steer_right = False
+
+    def steer_to_pylon(self, show_frame=False):
+
+        distance_from_center = self.pylon_processor.process_pylon(show_frame=show_frame)
+        # distance_from_center = pylon_processor.process_pylon("image", "pylon_right.jpg")
+        # distance_from_center = pylon_processor.process_pylon(
+        #     "image", "pylon_center.jpg"
+        # )
+        current_time = time.time()
+
+        if current_time - self.last_if_execution_time >= 0: # zz disabled
+            self.last_if_execution_time = current_time
+            # Left positive, right negative
+            if distance_from_center < 0:
+                # print("Steer right")
+                self.steering_motor.set_speed(-20)
+                self.heading.desired_steering_angle = self.steering_lock_angle_rad / 5
+            elif distance_from_center > 0:
+                # print("Steer left")
+                self.heading.desired_steering_angle = self.steering_lock_angle_rad / 5
+                self.steering_motor.set_speed(20)
+            elif distance_from_center == 0:
+                # print("Center")
+                self.heading.desired_steering_angle = 0.0
+                self.steering_motor.set_speed(0)
+            else:
+                print("Error")
+
+        # pylon_processor.process_pylon("video", "")
