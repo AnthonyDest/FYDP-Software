@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 
 # Capture video from webcam
-cap = cv2.VideoCapture(1)
+cap = cv2.VideoCapture(0)
 
 # Define lower and upper bounds for orange color in HSV
 orange_lower = np.array([5, 100, 100])

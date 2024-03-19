@@ -61,7 +61,7 @@ class robot_control:
     def initialize_image_processing(self):
         self.image_processing = image_processing.image_processing()
         self.pylon_processor = image_processing.pylon_processing()
-
+        self.pylon_processor.start_video()
     # make hyperparameter
     def initialize_path_planning(self):
         self.path_planning = path_planning.path_planning(rink_length=60, rink_width=40)
@@ -216,6 +216,7 @@ class robot_control:
         self.left_motor_encoder.close()
         self.right_motor_encoder.close()
         self.valve.close()
+        self.pylon_processor.stop_recording()
 
     # TODO drive to a node, calculate relative coords
     def drive_to_node(self, node: helper.Node):
@@ -791,8 +792,9 @@ class robot_control:
 
             # for valve, zz will this keep valve open if not held
             if open_valve:
-                self.valve.open_valve()
-                print("Valve Opened")
+                self.stop_and_save_video()
+                # self.valve.open_valve()
+                # print("Valve Opened")
             elif close_valve:
                 self.valve.close_valve()
                 print("Valve Closed")
@@ -822,15 +824,15 @@ class robot_control:
             self.last_if_execution_time = current_time
             # Left positive, right negative
             if distance_from_center < 0:
-                print("Steer right")
+                # print("Steer right")
                 self.steering_motor.set_speed(-20)
                 self.heading.desired_steering_angle = self.steering_lock_angle_rad / 5
             elif distance_from_center > 0:
-                print("Steer left")
+                # print("Steer left")
                 self.heading.desired_steering_angle = self.steering_lock_angle_rad / 5
                 self.steering_motor.set_speed(20)
             elif distance_from_center == 0:
-                print("Center")
+                # print("Center")
                 self.heading.desired_steering_angle = 0.0
                 self.steering_motor.set_speed(0)
             else:

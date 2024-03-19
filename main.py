@@ -1,6 +1,7 @@
 import sys
 import argparse
 from time import sleep
+import time
 
 from matplotlib import pyplot as plt
 from matplotlib.animation import FuncAnimation
@@ -51,9 +52,9 @@ class Robot:
                 current_state = state.test
             else:
                 # self.robot_control.plot_robot_position(printout=printout_arg)
-
+                
                 current_state = state.initialization
-
+            start_time = time.time()
             self.robot_control.reset_timer()
 
             zzEscape = 0
@@ -221,8 +222,18 @@ class Robot:
                     # self.robot_control.plot_robot_position(printout=printout_arg)
 
                 elif current_state == state.test:
+                    self.robot_control.steer_robot(teleop_enable=teleop_enable_arg)
 
                     self.robot_control.steer_to_pylon(show_frame=True)
+                    
+                    current_time = time.time()
+                    elapsed_time = current_time - start_time
+                    if elapsed_time >= 15:
+                        print("5 seconds have passed.")
+                        current_state = state.end
+                    
+                    
+                    # self.robot_control.pylon_processor.record_video()
 
                     # self.robot_control.right_motor.set_speed(50)
                     # self.robot_control.left_motor.set_speed(50)
