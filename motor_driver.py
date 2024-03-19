@@ -21,6 +21,8 @@ class Motor_Driver:
         self.lowest_pwm = lowest_pwm
         self.pwm_step = pwm_step
         self.current_pwm = 0
+        self.no_steer_left = False
+        self.no_steer_right = False
 
         if self.simulate:
             print(f"{self.name} is Simulated")
@@ -65,6 +67,17 @@ class Motor_Driver:
         self.current_pwm = duty_cycle
         # set pins based on duty cycle
         # "Forward"
+
+        # zz check left/right +/-
+        if self.no_steer_left:
+            duty_cycle = min(0,duty_cycle)
+            print("NO LEFT")
+        
+        if self.no_steer_right:
+            duty_cycle = max(0,duty_cycle)
+            print("NO RIGHT")
+
+
         if duty_cycle > 0:
             self.spin_clockwise()
         elif duty_cycle < 0:
@@ -76,6 +89,10 @@ class Motor_Driver:
             duty_cycle = 0
         elif duty_cycle > 100:
             duty_cycle = 100
+
+        # print(f"name: {self.name}")
+
+
 
         # Set the duty cycle of the PWM signal
         self.pwm.ChangeDutyCycle(duty_cycle)
@@ -129,6 +146,8 @@ class Steering_Motor(Motor_Driver):
             lowest_pwm,
             pwm_step,
         )
+
+        # print("INNER",self.no_steer_left)
 
 
 class Drive_Motor(Motor_Driver):
@@ -185,7 +204,3 @@ class Valve:
         gpio.output(self.in_1, gpio.LOW)
         gpio.output(self.in_2, gpio.LOW)
         self.valve_is_open = False
-
-    @check_simulate
-    def close(self):
-        gpio.cleanup()
