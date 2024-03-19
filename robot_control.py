@@ -79,10 +79,10 @@ class robot_control:
         simulate_left_motor_encoder = True
         simulate_right_motor_encoder = True
         simulate_valve = True
-        simulate_tof = True
+        simulate_tof = False
 
-        LEFT_LIMIT_SWITCH_PIN = 22
-        RIGHT_LIMIT_SWITCH_PIN = 27
+        LEFT_LIMIT_SWITCH_PIN = 27
+        RIGHT_LIMIT_SWITCH_PIN = 22
 
         STEERING_MOTOR_PWM_PIN = 25  # goes to enable
         STEERING_MOTOR_IN1_PIN = 24

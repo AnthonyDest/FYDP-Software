@@ -3,6 +3,9 @@
 ### Run Teleop:  
 `sudo /home/fydp/Documents/FYDP-Software/fydp_venv/bin/python /home/fydp/Documents/FYDP-Software/main.py --teleop`
 
+### Scan I2C
+`i2cdetect -y 1`
+
 ## Pip Environment Management
 
 ### Create a new environment:

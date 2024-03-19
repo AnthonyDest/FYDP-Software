@@ -63,6 +63,8 @@ class Robot:
                 # zz update all sensor data
                 # encoder, steering velocity, motor velocity, IMU positioning...
                 self.robot_control.read_in_all_sensor_data()
+                self.robot_control.handle_obstacle_in_path()
+                self.robot_control.handle_limit_switch_press()
 
                 if current_state == state.initialization:
                     self.robot_control.home_steering()
@@ -211,9 +213,7 @@ class Robot:
 
                 elif current_state == state.teleop:
                     # self.robot_control.steer_robot(teleop_enable=True)
-            
-                    self.robot_control.handle_obstacle_in_path()
-                    self.robot_control.handle_limit_switch_press()
+
 
                     self.robot_control.steer_robot(teleop_enable=teleop_enable_arg)
 
