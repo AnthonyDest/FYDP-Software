@@ -11,6 +11,8 @@ class pylon_processing:
         self.video_active = False
         self.video_writer = None
         self.frame = None
+        self.keep_turning = False
+        self.start_turn_time = 0
         pass
 
     def start_video(self):
@@ -18,7 +20,6 @@ class pylon_processing:
         self.cap = cv2.VideoCapture(0)
         ret, frame = self.cap.read()
         self.video_active = True
-
 
     # Function to read a still image
     def read_image(self, image_path):
@@ -32,9 +33,11 @@ class pylon_processing:
             output_dir = "/home/fydp/Documents/FYDP-Software/videos"
             os.makedirs(output_dir, exist_ok=True)
             self.output_file = os.path.join(output_dir, f"output_{current_time}.avi")
-            fourcc = cv2.VideoWriter_fourcc(*'XVID')
+            fourcc = cv2.VideoWriter_fourcc(*"XVID")
             height, width, _ = frame.shape
-            self.video_writer = cv2.VideoWriter(self.output_file, fourcc, 30, (width, height), isColor=True)
+            self.video_writer = cv2.VideoWriter(
+                self.output_file, fourcc, 30, (width, height), isColor=True
+            )
 
         # Write frame to video
         self.video_writer.write(frame)
@@ -52,7 +55,6 @@ class pylon_processing:
             if not ret:
                 print("Error: failed to capture image")
             self.frame = frame
-            
 
             return frame
 
@@ -138,19 +140,19 @@ class pylon_processing:
             return
 
         # if self.video_active == False:
-            # self.video_active == True
+        # self.video_active == True
         if input_type == "image":
             print("INPUT SOURCE: IMAGE")
             frame = self.read_image(path)
         elif input_type == "video":
             print("INPUT SOURCE: VIDEO")
             self.capture_video()
-                # frame = self.frame
-                # if frame is None:
-                #     print("Error: No frame captured from the video.")
-                    # return
+            # frame = self.frame
+            # if frame is None:
+            #     print("Error: No frame captured from the video.")
+            # return
         # else:
-            # ret, frame = self.cap.read()
+        # ret, frame = self.cap.read()
         if not self.video_active:
             return 0
         frame = self.frame
@@ -165,11 +167,21 @@ class pylon_processing:
             )
 
             # zz TURN IF CLOSE
-            print(f"w: {w}" )
+            print(f"w: {w}")
 
-            if abs(w) > 50:
+            if abs(w) > 50 or self.keep_turning:
+                if not self.keep_turning:
+                    self.start_turn_time = time.time()
+                    self.keep_turning = True
+
                 steer_severity *= -1000
+
                 print("TURN LOCK RIGHT")
+
+            if self.keep_turning and abs(w) < 50:
+                if time.time() - self.start_turn_time > 5:
+                    self.keep_turning = False
+                    print("TURN UNLOCK RIGHT")
 
             self.record_frame(frame)
 
@@ -187,10 +199,9 @@ class pylon_processing:
         #     output_file = os.path.join(output_dir, f"output_{current_time}.avi")
         #     fourcc = cv2.VideoWriter_fourcc(*'XVID')
         #     self.video_writer = cv2.VideoWriter(output_file, fourcc, 30, (1920, 1080), isColor=True)
-            
+
         # Write frame to video
         # self.video_writer.write(frame)
-
 
         return steer_severity
 
@@ -200,7 +211,7 @@ class pylon_processing:
             print("Video saved.")
 
     def record_video(self, resolution=(1920, 1080), framerate=30, display_live=True):
-        if self.video_writer is  None:
+        if self.video_writer is None:
             # Generate output file name with current time
             current_time = helper.time.strftime("%Y%m%d-%H%M%S")
             output_dir = "videos"
@@ -208,8 +219,10 @@ class pylon_processing:
             output_file = os.path.join(output_dir, f"output_{current_time}.avi")
 
             # Define codec and create VideoWriter object
-            fourcc = cv2.VideoWriter_fourcc(*'XVID')
-            self.video_writer = cv2.VideoWriter(output_file, fourcc, framerate, resolution, isColor=True)
+            fourcc = cv2.VideoWriter_fourcc(*"XVID")
+            self.video_writer = cv2.VideoWriter(
+                output_file, fourcc, framerate, resolution, isColor=True
+            )
 
             self.display_live = display_live
             # if display_live:
@@ -225,11 +238,12 @@ class pylon_processing:
         while self.display_live:
             ret, frame = cap.read()  # Read frame from webcam
             if ret:
-                cv2.imshow('Live Feed', frame)  # Display live feed in a window
-                if cv2.waitKey(1) & 0xFF == ord('q'):  # Press 'q' to stop live display
+                cv2.imshow("Live Feed", frame)  # Display live feed in a window
+                if cv2.waitKey(1) & 0xFF == ord("q"):  # Press 'q' to stop live display
                     break
         cap.release()
         cv2.destroyAllWindows()
+
 
 class image_processing:
     # initalize all default values
