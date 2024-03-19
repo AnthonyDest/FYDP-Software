@@ -174,9 +174,9 @@ class pylon_processing:
                     self.start_turn_time = time.time()
                     self.keep_turning = True
 
-                steer_severity *= -1000
+                # steer_severity *= -1000
 
-                print("TURN LOCK RIGHT")
+                print("TURN LOCK RIGHT DISABLED")
 
             if self.keep_turning and abs(w) < 50:
                 if time.time() - self.start_turn_time > 5:

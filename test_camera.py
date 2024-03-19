@@ -5,8 +5,9 @@ import numpy as np
 cap = cv2.VideoCapture(0)
 
 # Define lower and upper bounds for orange color in HSV
-orange_lower = np.array([5, 100, 100])
-orange_upper = np.array([15, 255, 255])
+orange_lower = np.array([105, 75, 0])
+orange_upper = np.array([255, 255, 255])
+
 
 while True:
     print("Capturing frame")

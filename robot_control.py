@@ -43,6 +43,8 @@ class robot_control:
         self.desired_steps = 0
         self.desired_steps_enable = False
         self.last_if_execution_time = 0
+        self.turn_state = 0
+        self.last_turn_time = 0
 
     # zz depreciated
     def initialize_modules_pass_objs(self, image_processing, path_planning):
@@ -526,7 +528,7 @@ class robot_control:
         "Execute drive commands to motor hardware, make current = desired"
 
         # calls a linear ramp on drive PWM
-        self.drive_pwm(self.desired_drive_pwm)
+        # self.drive_pwm(self.desired_drive_pwm)
 
 
 
@@ -943,19 +945,45 @@ class robot_control:
         if current_time - self.last_if_execution_time >= 0: # zz disabled
             self.last_if_execution_time = current_time
             # Left positive, right negative
-            if distance_from_center < 0:
+
+
+            if distance_from_center < 0 and not self.turn_state == 2 and not self.turn_state == 4:
                 print("Steer right")
-                self.steering_motor.set_speed(-20)
+                self.steering_motor.set_speed(-30)
                 self.heading.desired_steering_angle = self.steering_lock_angle_rad / 5
-            elif distance_from_center > 0:
+                self.last_turn_time = time.time()
+                self.turn_state = 2
+
+            elif distance_from_center > 0 and not self.turn_state == 1 and not self.turn_state == 4:
                 print("Steer left")
                 self.heading.desired_steering_angle = self.steering_lock_angle_rad / 5
-                self.steering_motor.set_speed(20)
+                self.steering_motor.set_speed(30)
+                self.last_turn_time = time.time()
+                self.turn_state = 1
+
             elif distance_from_center == 0:
                 print("Center")
                 self.heading.desired_steering_angle = 0.0
                 self.steering_motor.set_speed(0)
+                self.turn_state = 0
             else:
                 print("Error")
+
+
+            # if we have a non straight command, wait X seconds then we set 0
+            delta_time = time.time()- self.last_turn_time
+            if self.turn_state != 0 and delta_time > 0.5 and self.turn_state != 4:
+                self.turn_state = 4
+                self.steering_motor.set_speed(0)
+                self.last_turn_time = time.time()
+
+            if self.turn_state == 4 and delta_time > 0.5:
+                self.turn_state = 0
+                self.steering_motor.set_speed(0)
+
+            
+
+
+            # self.turn_state = 1 //1 is left, 2 is right, 0 is center
 
         # pylon_processor.process_pylon("video", "")

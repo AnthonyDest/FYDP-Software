@@ -110,9 +110,10 @@ class Robot:
                     # self.robot_control.read_arrow_keys()
                     self.robot_control.steer_robot(teleop_enable=teleop_enable_arg)
                     self.robot_control.steer_to_pylon(show_frame=True)
-                    self.robot_control.execute_desired()
-
-                    self.robot_control.plot_robot_position(printout=printout_arg)
+                    # self.robot_control.drive_pwm(50)
+                    # self.robot_control.execute_desired()
+    
+                    # self.robot_control.plot_robot_position(printout=printout_arg)
 
                 elif current_state == state.tune_steering_pid:
                     """This is a temporary state to tune the steering PID controller."""
@@ -154,6 +155,7 @@ class Robot:
                         self.ax.set_ylabel("Steering angle [deg]")
                         self.ax.set_xlim(0, 10)
                         self.ax.set_ylim(-100, 100)
+
 
                         # Show a legend
                         self.ax.legend()
@@ -237,11 +239,11 @@ class Robot:
 
                     self.robot_control.steer_to_pylon(show_frame=True)
                     
-                    current_time = time.time()
-                    elapsed_time = current_time - start_time
-                    if elapsed_time >= 15:
-                        print("5 seconds have passed.")
-                        current_state = state.end
+                    # current_time = time.time()
+                    # elapsed_time = current_time - start_time
+                    # if elapsed_time >= 15:
+                    #     print("5 seconds have passed.")
+                    #     current_state = state.end
                     
                     
                     # self.robot_control.pylon_processor.record_video()
