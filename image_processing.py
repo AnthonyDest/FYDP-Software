@@ -164,6 +164,13 @@ class pylon_processing:
                 distance_from_center, frame.shape[1], center_tolerance=10
             )
 
+            # zz TURN IF CLOSE
+            print(f"w: {w}" )
+
+            if abs(w) > 50:
+                steer_severity *= -1000
+                print("TURN LOCK RIGHT")
+
             self.record_frame(frame)
 
             # print(f"The pylon is {distance_from_center} pixels away from the center.")

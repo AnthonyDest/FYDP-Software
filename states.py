@@ -8,7 +8,8 @@ class state(Enum):
     travel_to_refill = auto()
     travel_to_path = auto()
     end = auto()
-    manual = auto()
+    pylon = auto()
     teleop = auto()
     tune_steering_pid = auto()
     test = auto()
+    

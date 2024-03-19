@@ -51,6 +51,8 @@ class Robot:
                 current_state = state.tune_steering_pid
             elif test_arg:
                 current_state = state.test
+            elif pylon_arg:
+                current_state = state.pylon
             else:
                 # self.robot_control.plot_robot_position(printout=printout_arg)
                 
@@ -102,12 +104,12 @@ class Robot:
                     pass
                 elif current_state == state.travel_to_path:
                     pass
-                elif current_state == state.manual:
+                elif current_state == state.pylon:
                     # near_node = self.robot_control.is_robot_near_desired_node()
 
                     # self.robot_control.read_arrow_keys()
                     self.robot_control.steer_robot(teleop_enable=teleop_enable_arg)
-
+                    self.robot_control.steer_to_pylon(show_frame=True)
                     self.robot_control.execute_desired()
 
                     self.robot_control.plot_robot_position(printout=printout_arg)
@@ -228,12 +230,12 @@ class Robot:
                     # self.robot_control.close_modules()
                     # current_state = state.end
 
-                    # self.robot_control.plot_robot_position(printout=printout_arg)
+                    # self.robot_controltest.plot_robot_position(printout=printout_arg)
 
                 elif current_state == state.test:
                     self.robot_control.steer_robot(teleop_enable=teleop_enable_arg)
 
-                    self.robot_c.ontrol.steer_to_pylon(show_frame=True)
+                    self.robot_control.steer_to_pylon(show_frame=True)
                     
                     current_time = time.time()
                     elapsed_time = current_time - start_time
@@ -342,6 +344,7 @@ if __name__ == "__main__":
     )
     parser.add_argument("--fstart", action="store_true", help="Skip start of path")
     parser.add_argument("--test", action="store_true", help="Enable testing state")
+    parser.add_argument("--pylon", action="store_true", help="Enable pylon testing state")
 try:
     cli = parser.parse_args()
 
@@ -352,6 +355,7 @@ try:
     tune_steering_arg = cli.tune_steer
     speedup_arg = cli.fstart
     test_arg = cli.test
+    pylon_arg = cli.pylon
 
     # zz temp auto enable simulate for testing convenience
     # TODO perhaps if gpio is not available, auto implement then auto enable simulate

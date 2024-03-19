@@ -82,7 +82,7 @@ class robot_control:
         simulate_left_motor_encoder = True
         simulate_right_motor_encoder = True
         simulate_valve = True
-        simulate_tof = False
+        simulate_tof = True
 
         LEFT_LIMIT_SWITCH_PIN = 27
         RIGHT_LIMIT_SWITCH_PIN = 22
@@ -944,15 +944,15 @@ class robot_control:
             self.last_if_execution_time = current_time
             # Left positive, right negative
             if distance_from_center < 0:
-                # print("Steer right")
+                print("Steer right")
                 self.steering_motor.set_speed(-20)
                 self.heading.desired_steering_angle = self.steering_lock_angle_rad / 5
             elif distance_from_center > 0:
-                # print("Steer left")
+                print("Steer left")
                 self.heading.desired_steering_angle = self.steering_lock_angle_rad / 5
                 self.steering_motor.set_speed(20)
             elif distance_from_center == 0:
-                # print("Center")
+                print("Center")
                 self.heading.desired_steering_angle = 0.0
                 self.steering_motor.set_speed(0)
             else:
