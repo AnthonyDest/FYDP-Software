@@ -17,7 +17,9 @@ cv2.createTrackbar("High_H", "Trackbars", 179, 179, nothing)
 cv2.createTrackbar("High_S", "Trackbars", 255, 255, nothing)
 cv2.createTrackbar("High_V", "Trackbars", 255, 255, nothing)
 
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(1)
+lower_color = None
+upper_color = None
 
 while True:
     ret, frame = cap.read()
@@ -52,3 +54,6 @@ while True:
 
 cap.release()
 cv2.destroyAllWindows()
+
+# print("Lower Color: ", lower_color)
+# print("Upper Color: ", upper_color)

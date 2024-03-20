@@ -61,7 +61,7 @@ class pylon_processing:
     # Function to detect orange color
     def detect_orange(self, frame):
         hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-        lower_orange = np.array([105, 75, 0])
+        lower_orange = np.array([150, 120, 0])
         upper_orange = np.array([255, 255, 255])
         mask = cv2.inRange(hsv, lower_orange, upper_orange)
         contours, _ = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
