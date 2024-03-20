@@ -1,5 +1,5 @@
 from helper import *
-import board
+
 import busio
 
 import adafruit_vl53l0x
@@ -7,13 +7,12 @@ import adafruit_vl53l0x
 # Initialize I2C bus and sensor.
 
 
-
 # TODO make this a parent class with children steering and drive encoders
 class TOF:
 
     # TODO incorporate max steps and steps/rotation into parameters for steering vs drive
     def __init__(
-        self, name="No_name_TOF", threshold = 800, debounce_time_s = 0.25, simulate=False
+        self, name="No_name_TOF", threshold=800, debounce_time_s=0.25, simulate=False
     ):
 
         self.name = name
@@ -23,8 +22,6 @@ class TOF:
         self.debounce_time_s = debounce_time_s
         self.last_detection_time = time.monotonic()
         self.last_distance = 0
-
-
 
         if self.simulate:
             print(f"{self.name} is Simulated")
@@ -58,7 +55,7 @@ class TOF:
         # current_time = time.monotonic()  # Get current time
         # if current_time - self.last_detection_time < self.debounce_time_s:
         #     return False
-        distance =self.get_distance()
+        distance = self.get_distance()
         if distance < self.threshold:
             # print(distance)
             print(f"OBJECT DETECTED AT {distance}")

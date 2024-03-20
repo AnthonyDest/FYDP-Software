@@ -33,7 +33,10 @@ class robot_control:
         self.current_drive_pwm = 0
 
         self.time_at_last_update = 0
-        self.timer = helper.timer()
+        self.old_timer = helper.old_timer()
+        self.timer = (
+            helper.Timer()
+        )  # zz make one start class that has multiple times inner via naming
         self.heading = helper.heading()
         self.steering_motor = None
         self.left_motor = None
@@ -45,6 +48,11 @@ class robot_control:
         self.last_if_execution_time = 0
         self.turn_state = 0
         self.last_turn_time = 0
+        self._pylon_size_counter = 0
+        self._steering_mutex_held = False
+        self._steering_mutex_acquire_time = 0
+        self._execute_steering_lock = False
+        self._start_time = 0
 
     # zz depreciated
     def initialize_modules_pass_objs(self, image_processing, path_planning):
@@ -67,6 +75,7 @@ class robot_control:
         self.image_processing = image_processing.image_processing()
         self.pylon_processor = image_processing.pylon_processing()
         self.pylon_processor.start_video()
+
     # make hyperparameter
     def initialize_path_planning(self):
         self.path_planning = path_planning.path_planning(rink_length=60, rink_width=40)
@@ -204,7 +213,9 @@ class robot_control:
             simulate=simulate_valve,
         )
 
-        self.tof = tof.TOF(name = "TOF", threshold=1800, simulate=simulate_tof) # zz add tof
+        self.tof = tof.TOF(
+            name="TOF", threshold=1800, simulate=simulate_tof
+        )  # zz add tof
 
         # TODO get Kp, Ki, Kd values from tuning
         self.init_steering_PID()
@@ -297,7 +308,7 @@ class robot_control:
             )
 
     def reset_timer(self):
-        self.time_at_last_update = self.timer.get_current_time()
+        self.time_at_last_update = self.old_timer.get_current_time()
 
     def drive_path(self):
         'has PID "loops" for steering and drive motors. also has the option to simulate motor feedback'
@@ -467,15 +478,13 @@ class robot_control:
         while self.left_limit_switch.is_pressed():
             self.steering_motor.set_speed(-homing_speed)
 
-
-        
         # stop motor
         self.steering_motor.set_speed(0)
 
         print("READY TO TURN RIGHT")
 
         # zz should wait a few second, until we have better PID/motor inertia handling for motor firmware
-        self.timer.wait_seconds(2)
+        self.old_timer.wait_seconds(2)
 
         self.steering_motor.set_speed(-homing_speed)
 
@@ -492,7 +501,7 @@ class robot_control:
 
         print("READY TO TURN LEFT")
         # zz should wait a few second, until we have better PID/motor inertia handling for motor firmware
-        self.timer.wait_seconds(2)
+        self.old_timer.wait_seconds(2)
 
         self.steering_motor.set_speed(homing_speed)
 
@@ -510,7 +519,7 @@ class robot_control:
         self.steering_motor_encoder.update_steering_angle_per_step(
             self.steering_lock_angle_rad
         )
-        
+
         # print("READY TO CENTER")
 
         # zz should wait a few second, then center the steering motor
@@ -530,9 +539,6 @@ class robot_control:
         # calls a linear ramp on drive PWM
         # self.drive_pwm(self.desired_drive_pwm)
 
-
-
-
     # TODO execute steering angle based on desired
     def execute_steering(self):
         """
@@ -542,27 +548,24 @@ class robot_control:
 
         current_heading += steering_ROC * time (assumed to be 1 for now)
         """
-        
+
         STEER_SPEED_AUTO = 30
         if self.desired_steps_enable:
             current_steps = self.steering_motor_encoder.get_steps()
             desired_steps = self.desired_steps
 
-            if current_steps < desired_steps-25:
+            if current_steps < desired_steps - 25:
                 self.steering_motor.set_speed(STEER_SPEED_AUTO)
-            elif current_steps > desired_steps+25:
+            elif current_steps > desired_steps + 25:
                 self.steering_motor.set_speed(-STEER_SPEED_AUTO)
             else:
                 self.steering_motor.set_speed(0)
-            
 
-            
         # self.turn_steps()
 
         # self.steer_PID_rad(self.heading.desired_steering_angle)
         # self.steer_rad(self.heading.desired_steering_angle)
 
-        
         # zz check steer if broken encoders
 
         # TODO have better steering corrections (steer back on path)
@@ -605,7 +608,6 @@ class robot_control:
         print(f"deg: {desired_angle}, rad: {math.radians(desired_angle)}")
         self.steer_PID_rad(math.radians(desired_angle))
 
-
     def steer_rad(self, desired_angle):
         """Receive: desired angle of steering rack in radians
         if real: send motors corresponding PID PWM value, receive encoder values to update current heading
@@ -614,18 +616,15 @@ class robot_control:
         current_angle = self.heading.current_steering_angle
         zz_steering_tolerance = math.radians(5)
 
-        if desired_angle  > current_angle + zz_steering_tolerance:
+        if desired_angle > current_angle + zz_steering_tolerance:
             self.steering_motor.set_speed(30)
 
         if desired_angle < current_angle - zz_steering_tolerance:
             self.steering_motor.set_speed(-30)
 
         self.heading.current_steering_angle = (
-                self.steering_motor_encoder.get_steering_angle_rad()
-            )
-
-
-
+            self.steering_motor_encoder.get_steering_angle_rad()
+        )
 
     # TODO check if this function works in polling, or if it needs to be threaded
     def steer_PID_rad(self, desired_angle):
@@ -843,11 +842,15 @@ class robot_control:
                 elif slow_steer_left:
                     self.desired_steps_enable = False
                     self.steering_motor.set_speed(70)
-                    self.heading.desired_heading = self.steering_motor_encoder.get_steering_angle_rad()
+                    self.heading.desired_heading = (
+                        self.steering_motor_encoder.get_steering_angle_rad()
+                    )
                 elif slow_steer_right:
                     self.desired_steps_enable = False
                     self.steering_motor.set_speed(-60)
-                    self.heading.desired_heading = self.steering_motor_encoder.get_steering_angle_rad()
+                    self.heading.desired_heading = (
+                        self.steering_motor_encoder.get_steering_angle_rad()
+                    )
                 elif fast_steer_left:
                     self.steering_motor.set_speed(60)
                 elif fast_steer_right:
@@ -888,7 +891,7 @@ class robot_control:
                 # start_step = self.steering_motor_encoder.get_steps()
                 # while self.steering_motor_encoder.get_steps() < start_step +50:
                 #     self.steering_motor.set_speed(50)
-                
+
                 # self.steering_motor.set_speed(0)
                 self.desired_steps = 50
                 sleep(0.5)
@@ -897,12 +900,10 @@ class robot_control:
                 # start_step = self.steering_motor_encoder.get_steps()
                 # while self.steering_motor_encoder.get_steps() > start_step - 50:
                 #     self.steering_motor.set_speed(-50)
-                
+
                 # self.steering_motor.set_speed(0)
                 self.desired_steps = -50
                 sleep(0.5)
-
-            
 
             return True
 
@@ -910,9 +911,8 @@ class robot_control:
             print(f"An error occurred: {e}")
             return False
 
-
     def handle_obstacle_in_path(self):
-        
+
         if self.tof.is_object_detected():
             # print(f"OBJECT DETECTED AT APPROX: {self.tof.get_distance()}")
             self.drive_pwm(0)
@@ -942,48 +942,129 @@ class robot_control:
         # )
         current_time = time.time()
 
-        if current_time - self.last_if_execution_time >= 0: # zz disabled
+        if current_time - self.last_if_execution_time >= 0:  # zz disabled
             self.last_if_execution_time = current_time
             # Left positive, right negative
+            center_tolerance = 5
 
-
-            if distance_from_center < 0 and not self.turn_state == 2 and not self.turn_state == 4:
+            if distance_from_center < center_tolerance:
                 print("Steer right")
-                self.steering_motor.set_speed(-30)
-                self.heading.desired_steering_angle = self.steering_lock_angle_rad / 5
-                self.last_turn_time = time.time()
-                self.turn_state = 2
+                self.steer_right_mutex(pwm=30, duration=0.5, delay=0.5)
 
-            elif distance_from_center > 0 and not self.turn_state == 1 and not self.turn_state == 4:
+            elif distance_from_center > center_tolerance:
                 print("Steer left")
-                self.heading.desired_steering_angle = self.steering_lock_angle_rad / 5
-                self.steering_motor.set_speed(30)
-                self.last_turn_time = time.time()
-                self.turn_state = 1
+                self.steer_left_mutex(pwm=30, duration=0.5, delay=0.5)
 
             elif distance_from_center == 0:
                 print("Center")
-                self.heading.desired_steering_angle = 0.0
-                self.steering_motor.set_speed(0)
-                self.turn_state = 0
+                self.steer_center_mutex(pwm=0, duration=0.5, delay=0.5)
             else:
                 print("Error")
 
+    def reset_steering_mutex(self):
+        if self._steering_mutex_held:
+            delta_time = time.time() - self._steering_mutex_acquire_time
 
-            # if we have a non straight command, wait X seconds then we set 0
-            delta_time = time.time()- self.last_turn_time
-            if self.turn_state != 0 and delta_time > 0.5 and self.turn_state != 4:
-                self.turn_state = 4
-                self.steering_motor.set_speed(0)
-                self.last_turn_time = time.time()
+            if delta_time > self._steering_mutex_hold_req:
 
-            if self.turn_state == 4 and delta_time > 0.5:
-                self.turn_state = 0
                 self.steering_motor.set_speed(0)
 
-            
+                if (
+                    delta_time
+                    > self._steering_mutex_hold_req + self._steering_mutex_delay_req
+                ):
+                    self._steering_mutex_held = False
+                    self._steering_mutex_acquire_time = 0
+                    self._steering_mutex_hold_req = 0
+                    self._steering_mutex_delay_req = 0
 
+    def _steering_mutex_param_update(self, duration, delay):
+        self._steering_mutex_held = True
+        self._steering_mutex_acquire_time = time.time()
+        self._steering_mutex_hold_req = duration
+        self._steering_mutex_delay_req = delay
 
-            # self.turn_state = 1 //1 is left, 2 is right, 0 is center
+    def steer_left_mutex(self, pwm, duration, delay=0):
+        if not self._steering_mutex_held:
+            self.steering_motor.set_speed(-abs(pwm))
+            self._steering_mutex_param_update(duration, delay)
 
-        # pylon_processor.process_pylon("video", "")
+    def steer_right_mutex(self, pwm, duration, delay=0):
+        if not self._steering_mutex_held:
+            self.steering_motor.set_speed(abs(pwm))
+            self._steering_mutex_param_update(duration, delay)
+
+    def steer_center_mutex(self, pwm=0, duration=0.5, delay=0):
+        "redundant pwm param for consistency with other functions"
+        if not self._steering_mutex_held:
+            self.steering_motor.set_speed(0)
+            self._steering_mutex_param_update(duration, delay)
+
+    def _pylon_basic_steer(self):
+        self.steer_robot(teleop_enable=True)
+        self.steer_to_pylon(show_frame=True)
+        self.drive_pwm(50)
+        self.execute_desired()
+
+    def pylon_a(self):
+        "steer to pylon basic"
+        self._pylon_basic_steer()
+
+    def pylon_b(self):
+        "steer to pylon, turn at 50 pixel width"
+
+        # debounce
+        if self.pylon_processor.w > 50:
+            self._pylon_size_counter += 1
+        else:
+            self._pylon_size_counter = 0
+
+        if self._pylon_size_counter > 10 or self._execute_steering_lock:
+            self._execute_steering_lock = True
+
+            self.steer_left_mutex(pwm=30, duration=2, delay=5)
+
+        else:
+            self._pylon_basic_steer()
+
+    def pylon_c(self):
+        "steer to pylon, turn left at 5 seconds"
+
+        if self._start_time == 0:
+            self._start_time = time.time()
+
+        self._pylon_basic_steer()
+
+        if time.time() - self._start_time > 5:
+            self.steer_left_mutex(pwm=30, duration=2, delay=5)
+
+    def pylon_d(self):
+        "very specific steering to pylon"
+
+        if self._start_time == 0:
+            self._start_time = time.time()
+
+        delta_time = time.time() - self._start_time
+
+        if delta_time > 5 and delta_time < 8:
+            self.steer_left_mutex(pwm=30, duration=0.5, delay=0.5)
+            print("Soft steer left")
+
+        if delta_time > 8 and delta_time < 10:
+            self.steer_right_mutex(pwm=40, duration=0.5, delay=0.25)
+            print("Soft steer right")
+
+        if delta_time > 10 and delta_time < 12:
+            self.steer_center_mutex(pwm=0, duration=1, delay=0)
+            print("Straight")
+
+        if delta_time > 12:
+            seed = int(str(time.time()).replace(".", "")[-4:])
+            random_number = hash(seed)
+            if abs(random_number) % 2:
+                self.steer_left_mutex(pwm=30, duration=2, delay=5)
+                print("Hard steer left")
+            else:
+                self.steer_right_mutex(pwm=30, duration=2, delay=5)
+                print("Hard steer right")
+            # helper.sys.exit()

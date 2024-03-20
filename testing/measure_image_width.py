@@ -6,7 +6,7 @@ import image_processing
 
 pylon_camera = image_processing.pylon_processing()
 
-cap = cv2.VideoCapture(1)
+cap = cv2.VideoCapture(0)
 
 while True:
     ret, frame = cap.read()

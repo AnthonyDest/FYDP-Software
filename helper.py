@@ -1,11 +1,14 @@
 import math
 import time
 import numpy as np
+import sys
 
 try:
     import RPi.GPIO as gpio
+    import board as board
 except ImportError:
     gpio = None
+    board = None
     print("RPi.GPIO not available. GPIO functionality will be disabled.")
 
 
@@ -14,6 +17,7 @@ def is_hardware_OK():
         print("Simulate not enabled, but GPIO Disabled due to import error")
         return False
     return True
+
 
 def cleanup_gpio():
     if is_hardware_OK:
@@ -92,7 +96,25 @@ def nested_list_to_set(nested_list):
     return set(map(tuple, nested_list))
 
 
-class timer:
+class Timer:
+    def __init__(self):
+        self.start_time = self.get_current_time()
+        self.delta_time = 0
+
+    @staticmethod
+    def get_current_time():
+        return time.time()
+
+    def has_time_passed(self, duration):
+        current_time = self.get_current_time()
+        elapsed_time = current_time - self.start_time
+        if elapsed_time >= duration:
+            self.start_time = current_time
+            return True
+        return False
+
+
+class old_timer:
     def __init__(self):
         self.start_time = self.get_current_time()
         self.delta_time = 0

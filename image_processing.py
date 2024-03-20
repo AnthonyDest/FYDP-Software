@@ -13,7 +13,7 @@ class pylon_processing:
         self.frame = None
         self.keep_turning = False
         self.start_turn_time = 0
-        pass
+        self.w = 0
 
     def start_video(self):
 
@@ -167,21 +167,22 @@ class pylon_processing:
             )
 
             # zz TURN IF CLOSE
-            print(f"w: {w}")
+            # print(f"w: {w}")
+            self.w = w
 
-            if abs(w) > 50 or self.keep_turning:
-                if not self.keep_turning:
-                    self.start_turn_time = time.time()
-                    self.keep_turning = True
+            # if abs(w) > 50 or self.keep_turning:
+            #     if not self.keep_turning:
+            #         self.start_turn_time = time.time()
+            #         self.keep_turning = True
 
-                # steer_severity *= -1000
+            #     # steer_severity *= -1000
 
-                print("TURN LOCK RIGHT DISABLED")
+            #     print("TURN LOCK RIGHT DISABLED")
 
-            if self.keep_turning and abs(w) < 50:
-                if time.time() - self.start_turn_time > 5:
-                    self.keep_turning = False
-                    print("TURN UNLOCK RIGHT")
+            # if self.keep_turning and abs(w) < 50:
+            #     if time.time() - self.start_turn_time > 5:
+            #         self.keep_turning = False
+            #         print("TURN UNLOCK RIGHT")
 
             self.record_frame(frame)
 

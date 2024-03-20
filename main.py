@@ -55,7 +55,7 @@ class Robot:
                 current_state = state.pylon
             else:
                 # self.robot_control.plot_robot_position(printout=printout_arg)
-                
+
                 current_state = state.initialization
             start_time = time.time()
             self.robot_control.reset_timer()
@@ -108,11 +108,11 @@ class Robot:
                     # near_node = self.robot_control.is_robot_near_desired_node()
 
                     # self.robot_control.read_arrow_keys()
-                    self.robot_control.steer_robot(teleop_enable=teleop_enable_arg)
-                    self.robot_control.steer_to_pylon(show_frame=True)
-                    # self.robot_control.drive_pwm(50)
-                    # self.robot_control.execute_desired()
-    
+                    # self.robot_control.pylon_a()
+                    # self.robot_control.pylon_b()
+                    # self.robot_control.pylon_c()
+                    self.robot_control.pylon_d()
+
                     # self.robot_control.plot_robot_position(printout=printout_arg)
 
                 elif current_state == state.tune_steering_pid:
@@ -155,7 +155,6 @@ class Robot:
                         self.ax.set_ylabel("Steering angle [deg]")
                         self.ax.set_xlim(0, 10)
                         self.ax.set_ylim(-100, 100)
-
 
                         # Show a legend
                         self.ax.legend()
@@ -201,8 +200,8 @@ class Robot:
                         print(
                             f"ENDED: Current steering angle: {robot_control.math.degrees(self.robot_control.heading.current_steering_angle)}"
                         )
-                        self.robot_control.timer.wait_seconds(0.5)
-                    self.robot_control.timer.wait_seconds(0.01)
+                        self.robot_control.old_timer.wait_seconds(0.5)
+                    self.robot_control.old_timer.wait_seconds(0.01)
 
                 elif current_state == state.end:
                     print("Travel done")
@@ -218,7 +217,6 @@ class Robot:
 
                 elif current_state == state.teleop:
                     # self.robot_control.steer_robot(teleop_enable=True)
-
 
                     self.robot_control.steer_robot(teleop_enable=teleop_enable_arg)
 
@@ -238,14 +236,13 @@ class Robot:
                     self.robot_control.steer_robot(teleop_enable=teleop_enable_arg)
 
                     self.robot_control.steer_to_pylon(show_frame=True)
-                    
+
                     # current_time = time.time()
                     # elapsed_time = current_time - start_time
                     # if elapsed_time >= 15:
                     #     print("5 seconds have passed.")
                     #     current_state = state.end
-                    
-                    
+
                     # self.robot_control.pylon_processor.record_video()
 
                     # self.robot_control.right_motor.set_speed(50)
@@ -346,7 +343,9 @@ if __name__ == "__main__":
     )
     parser.add_argument("--fstart", action="store_true", help="Skip start of path")
     parser.add_argument("--test", action="store_true", help="Enable testing state")
-    parser.add_argument("--pylon", action="store_true", help="Enable pylon testing state")
+    parser.add_argument(
+        "--pylon", action="store_true", help="Enable pylon testing state"
+    )
 try:
     cli = parser.parse_args()
 
