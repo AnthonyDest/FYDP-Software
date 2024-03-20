@@ -44,7 +44,7 @@ class pylon_processing:
 
     # Function to capture video from USB webcam
     def capture_video(self):
-        print("Video stream loading...")
+        # print("Video stream loading...")
 
         # if not self.video_active:
         #     self.video_active = True
@@ -145,7 +145,7 @@ class pylon_processing:
             print("INPUT SOURCE: IMAGE")
             frame = self.read_image(path)
         elif input_type == "video":
-            print("INPUT SOURCE: VIDEO")
+            # print("INPUT SOURCE: VIDEO")
             self.capture_video()
             # frame = self.frame
             # if frame is None:

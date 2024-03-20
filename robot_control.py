@@ -537,7 +537,7 @@ class robot_control:
         "Execute drive commands to motor hardware, make current = desired"
 
         # calls a linear ramp on drive PWM
-        # self.drive_pwm(self.desired_drive_pwm)
+        self.drive_pwm(self.desired_drive_pwm)
 
     # TODO execute steering angle based on desired
     def execute_steering(self):
@@ -949,11 +949,11 @@ class robot_control:
 
             if distance_from_center < center_tolerance:
                 print("Steer right")
-                self.steer_right_mutex(pwm=30, duration=0.5, delay=0.5)
+                self.steer_right_mutex(pwm=50, duration=0.5, delay=0.5)
 
             elif distance_from_center > center_tolerance:
                 print("Steer left")
-                self.steer_left_mutex(pwm=30, duration=0.5, delay=0.5)
+                self.steer_left_mutex(pwm=50, duration=0.5, delay=0.5)
 
             elif distance_from_center == 0:
                 print("Center")
@@ -986,12 +986,12 @@ class robot_control:
 
     def steer_left_mutex(self, pwm, duration, delay=0):
         if not self._steering_mutex_held:
-            self.steering_motor.set_speed(-abs(pwm))
+            self.steering_motor.set_speed(abs(pwm))
             self._steering_mutex_param_update(duration, delay)
 
     def steer_right_mutex(self, pwm, duration, delay=0):
         if not self._steering_mutex_held:
-            self.steering_motor.set_speed(abs(pwm))
+            self.steering_motor.set_speed(-abs(pwm))
             self._steering_mutex_param_update(duration, delay)
 
     def steer_center_mutex(self, pwm=0, duration=0.5, delay=0):
@@ -1001,9 +1001,9 @@ class robot_control:
             self._steering_mutex_param_update(duration, delay)
 
     def _pylon_basic_steer(self):
-        self.steer_robot(teleop_enable=True)
+        # self.steer_robot(teleop_enable=True)
         self.steer_to_pylon(show_frame=True)
-        self.drive_pwm(50)
+        self.drive_pwm(100)
         self.execute_desired()
 
     def pylon_a(self):

@@ -108,10 +108,16 @@ class Robot:
                     # near_node = self.robot_control.is_robot_near_desired_node()
 
                     # self.robot_control.read_arrow_keys()
-                    # self.robot_control.pylon_a()
+                    self.robot_control.pylon_a()
+                    self.robot_control.drive_pwm(100)
+                    self.robot_control.reset_steering_mutex()
+
+
+                    # self.robot_control.steer_right_mutex(pwm=80, duration=1, delay=0.5)
+
                     # self.robot_control.pylon_b()
                     # self.robot_control.pylon_c()
-                    self.robot_control.pylon_d()
+                    # self.robot_control.pylon_d()
 
                     # self.robot_control.plot_robot_position(printout=printout_arg)
 
@@ -217,6 +223,7 @@ class Robot:
 
                 elif current_state == state.teleop:
                     # self.robot_control.steer_robot(teleop_enable=True)
+                    # current_state = state.end
 
                     self.robot_control.steer_robot(teleop_enable=teleop_enable_arg)
 

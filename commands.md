@@ -7,7 +7,7 @@
 `i2cdetect -y 1`
 
 ### SSH Copy
-`scp -r fydp@raspberrypi:/home/fydp/Documents/FYDP-Software/Videos "C:/Users/Anthony/Documents/School/4B/FYDP/Feb_19"`
+`scp -r fydp@raspberrypi:/home/fydp/Documents/FYDP-Software/videos "C:/Users/Anthony/Documents/School/4B/FYDP/Feb_19"`
 
 ## Pip Environment Management
 

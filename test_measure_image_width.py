@@ -1,7 +1,7 @@
 import cv2
 import sys
 
-sys.path.append("../FYDP-Software")
+# sys.path.append("../FYDP-Software")
 import image_processing
 
 pylon_camera = image_processing.pylon_processing()
