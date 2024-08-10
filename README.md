@@ -3,7 +3,10 @@
 Welcome to SnoMo! SnoMo is an innovative autonomous ice-resurfacing robot developed as the centerpiece of our 2024 Capstone Project.
 
 ## About SnoMo
-**What is SnoMo?** SnoMo is an autonomous ice-resurfacing robot designed to tackle the challenges traditional ice-resurfacers face. It offers an affordable, effective, and easy solution for maintaining high-quality ice rinks, both indoors and outdoors. For more information, please check out the [SnoMo Project Website](https://24capstone.wixsite.com/my-site-1)
+**What is SnoMo?** SnoMo is an autonomous ice-resurfacing robot designed to tackle the challenges traditional ice-resurfacers face. It offers an affordable, effective, and easy solution for maintaining high-quality ice rinks, both indoors and outdoors. For more information, please check out the [SnoMo Project Website](https://24capstone.wixsite.com/my-site-1
+
+## See SnoMo In Action
+[![Watch the Video](https://img.youtube.com/vi/F2YSc3F6f1k/maxresdefault.jpg)](https://youtu.be/F2YSc3F6f1k)
 
 # Initial Setup
 
